@@ -1,3 +1,4 @@
+const whatsappRoutes = require('./routes/whatsapp')
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
@@ -10,6 +11,7 @@ app.use(express.json())
 
 // Routes
 app.use('/api/chat', chatRoutes)
+app.use('/api/whatsapp', whatsappRoutes) 
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ArogyaBot backend is running!' })
