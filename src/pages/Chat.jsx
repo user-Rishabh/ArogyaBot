@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Send, Mic, MicOff, ArrowLeft, HeartPulse,
-  Globe2, StopCircle, Zap
+  Globe2, StopCircle, Zap, Sun, Moon
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useSpeech } from '../hooks/useSpeech'
 
 /* ─── Demo responses pool ─── */
@@ -54,15 +55,15 @@ function Bubble({ msg }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 animate-slide-up`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center mr-2.5 shrink-0 mt-1 shadow-md shadow-teal-500/20">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mr-2.5 shrink-0 mt-1 shadow-md shadow-indigo-500/20">
           <HeartPulse className="w-4 h-4 text-white" />
         </div>
       )}
       <div
         className={
           isUser
-            ? 'bg-teal-600 text-white px-4 py-3 rounded-2xl rounded-br-sm max-w-[75%] text-sm leading-relaxed shadow-md'
-            : 'bg-surface-800 text-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm max-w-[75%] text-sm leading-relaxed border border-white/5 shadow-sm'
+            ? 'bg-indigo-600 text-white px-4 py-3 rounded-2xl rounded-br-sm max-w-[75%] text-sm leading-relaxed shadow-md'
+            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm max-w-[75%] text-sm leading-relaxed border border-slate-100 dark:border-slate-700 shadow-sm transition-colors duration-300'
         }
       >
         {msg.content}
@@ -75,13 +76,13 @@ function Bubble({ msg }) {
 function TypingDots() {
   return (
     <div className="flex justify-start mb-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center mr-2.5 shrink-0 shadow-md shadow-teal-500/20">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mr-2.5 shrink-0 shadow-md shadow-indigo-500/20">
         <HeartPulse className="w-4 h-4 text-white" />
       </div>
-      <div className="bg-surface-800 border border-white/5 px-4 py-3.5 rounded-2xl rounded-bl-sm flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce-dot dot-1" />
-        <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce-dot dot-2" />
-        <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce-dot dot-3" />
+      <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-4 py-3.5 rounded-2xl rounded-bl-sm flex items-center gap-1.5 transition-colors duration-300">
+        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce-dot dot-1" />
+        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce-dot dot-2" />
+        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce-dot dot-3" />
       </div>
     </div>
   )
@@ -91,6 +92,7 @@ function TypingDots() {
 export default function Chat() {
   const { sessionId: urlSessionId } = useParams()
   const { user }   = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate   = useNavigate()
 
   const [messages,  setMessages]  = useState([])
@@ -224,55 +226,64 @@ export default function Chat() {
   const langLabel = language === 'en' ? 'EN' : 'हिंदी'
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-900">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
       {/* Header */}
-      <header className="shrink-0 border-b border-white/5 bg-surface-900/80 backdrop-blur-md z-10">
+      <header className="shrink-0 border-b border-slate-100 dark:border-slate-700/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-10 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
           <button
             id="chat-back-btn"
             onClick={() => navigate('/dashboard')}
-            className="btn-ghost p-2 -ml-2"
+            className="p-2 -ml-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             aria-label="Back to dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-sm">
               <HeartPulse className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white leading-tight">ArogyaBot</p>
-              <p className="text-xs text-teal-400 leading-tight">● Online</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">ArogyaBot</p>
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 leading-tight">● Online</p>
             </div>
           </div>
 
           {/* Demo badge */}
           {isDemo && (
             <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-              <Zap className="w-3 h-3 text-amber-400" />
-              <span className="text-amber-300 text-xs font-medium">Demo</span>
+              <Zap className="w-3 h-3 text-amber-500" />
+              <span className="text-amber-600 dark:text-amber-400 text-xs font-medium">Demo</span>
             </div>
           )}
+
+          {/* Dark mode toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+            className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
 
           {/* Language Toggle */}
           <button
             id="chat-lang-toggle-btn"
             onClick={() => setLanguage(l => l === 'en' ? 'hi' : 'en')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all text-sm font-medium"
             title="Toggle language"
           >
-            <Globe2 className="w-3.5 h-3.5 text-teal-400" />
-            <span className="text-slate-200">{langLabel}</span>
+            <Globe2 className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+            <span className="text-slate-700 dark:text-slate-300">{langLabel}</span>
           </button>
         </div>
 
         {/* Demo mode notice strip */}
         {isDemo && (
-          <div className="bg-amber-500/5 border-b border-amber-500/10 px-4 py-1.5 text-center">
-            <p className="text-amber-400/80 text-xs">
+          <div className="bg-amber-50 dark:bg-amber-500/5 border-b border-amber-200 dark:border-amber-500/10 px-4 py-1.5 text-center transition-colors duration-300">
+            <p className="text-amber-600 dark:text-amber-400/80 text-xs">
               ⚡ Demo Mode — responses are simulated.{' '}
-              <a href="/signup" className="underline hover:text-amber-300">Create a free account</a>{' '}
+              <a href="/signup" className="underline hover:text-amber-700 dark:hover:text-amber-300">Create a free account</a>{' '}
               to connect your real backend.
             </p>
           </div>
@@ -280,18 +291,18 @@ export default function Chat() {
       </header>
 
       {/* Messages */}
-      <main className="flex-1 overflow-y-auto scrollbar-hide">
+      <main className="flex-1 overflow-y-auto scrollbar-hide bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 py-6">
           {/* Empty state */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-64 text-center animate-fade-in">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center mb-5 shadow-xl shadow-teal-500/30">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mb-5 shadow-xl shadow-indigo-500/20">
                 <HeartPulse className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-lg font-semibold text-white mb-2">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                 {language === 'hi' ? 'नमस्ते! मैं ArogyaBot हूँ।' : "Hello! I'm ArogyaBot."}
               </h2>
-              <p className="text-slate-400 text-sm max-w-sm">
+              <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm">
                 {language === 'hi'
                   ? 'अपने लक्षण बताएं और मैं आपकी मदद करूँगा।'
                   : "Describe your symptoms and I'll do my best to help you."}
@@ -305,7 +316,7 @@ export default function Chat() {
                   <button
                     key={chip}
                     onClick={() => { setInput(chip); inputRef.current?.focus() }}
-                    className="px-3.5 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 rounded-full text-teal-300 text-xs transition-colors"
+                    className="px-3.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-700 rounded-full text-indigo-600 dark:text-indigo-300 text-xs transition-colors"
                   >
                     {chip}
                   </button>
@@ -325,14 +336,14 @@ export default function Chat() {
       </main>
 
       {/* Input bar */}
-      <footer className="shrink-0 border-t border-white/5 bg-surface-900/90 backdrop-blur-md">
+      <footer className="shrink-0 border-t border-slate-100 dark:border-slate-700/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 py-3">
           {/* Mic active banner */}
           {isListening && (
-            <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+            <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               Listening… speak now
-              <button onClick={stopListening} className="ml-auto hover:text-red-300">
+              <button onClick={stopListening} className="ml-auto hover:text-red-700 dark:hover:text-red-300">
                 <StopCircle className="w-4 h-4" />
               </button>
             </div>
@@ -348,7 +359,7 @@ export default function Chat() {
                 className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
                   isListening
                     ? 'bg-red-500 hover:bg-red-400 text-white shadow-lg shadow-red-500/30'
-                    : 'bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-teal-400'
+                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'
                 }`}
               >
                 {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -368,7 +379,7 @@ export default function Chat() {
                   ? 'अपना संदेश लिखें… (Enter भेजें)'
                   : 'Type your message… (Enter to send)'
               }
-              className="flex-1 input-field resize-none py-2.5 max-h-32 min-h-[44px] leading-snug scrollbar-hide"
+              className="flex-1 resize-none py-2.5 px-4 max-h-32 min-h-[44px] leading-snug scrollbar-hide bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
               style={{ height: 'auto' }}
               onInput={e => {
                 e.target.style.height = 'auto'
@@ -382,13 +393,13 @@ export default function Chat() {
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               aria-label="Send message"
-              className="shrink-0 w-11 h-11 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-teal-500/20"
+              className="shrink-0 w-11 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
             >
               <Send className="w-5 h-5" />
             </button>
           </div>
 
-          <p className="text-center text-slate-600 text-xs mt-2">
+          <p className="text-center text-slate-400 dark:text-slate-500 text-xs mt-2">
             ArogyaBot is for informational purposes only — not a medical diagnosis.
           </p>
         </div>

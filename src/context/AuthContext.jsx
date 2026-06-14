@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
     if (data.user) {
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({ id: data.user.id, name, email })
+        .insert({ id: data.user.id, name })
 
       if (profileError) {
         console.warn('Could not insert profile:', profileError.message)
