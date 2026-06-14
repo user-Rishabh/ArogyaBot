@@ -62,8 +62,8 @@ function Bubble({ msg }) {
       <div
         className={
           isUser
-            ? 'bg-indigo-600 text-white px-4 py-3 rounded-2xl rounded-br-sm max-w-[75%] text-sm leading-relaxed shadow-md'
-            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm max-w-[75%] text-sm leading-relaxed border border-slate-100 dark:border-slate-700 shadow-sm transition-colors duration-300'
+            ? 'bg-indigo-600 text-white px-4 py-3 rounded-2xl rounded-br-sm max-w-[85%] sm:max-w-[75%] text-sm leading-relaxed shadow-md'
+            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm max-w-[85%] sm:max-w-[75%] text-sm leading-relaxed border border-slate-100 dark:border-slate-700 shadow-sm transition-colors duration-300'
         }
       >
         {msg.content}
@@ -226,14 +226,14 @@ export default function Chat() {
   const langLabel = language === 'en' ? 'EN' : 'हिंदी'
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300">
+    <div className="h-screen h-[100dvh] flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300 overflow-hidden">
       {/* Header */}
       <header className="shrink-0 border-b border-slate-100 dark:border-slate-700/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-10 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
           <button
             id="chat-back-btn"
             onClick={() => navigate('/dashboard')}
-            className="p-2 -ml-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="w-11 h-11 flex items-center justify-center -ml-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             aria-label="Back to dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -261,7 +261,7 @@ export default function Chat() {
           <button
             onClick={toggleTheme}
             aria-label="Toggle dark mode"
-            className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -270,7 +270,7 @@ export default function Chat() {
           <button
             id="chat-lang-toggle-btn"
             onClick={() => setLanguage(l => l === 'en' ? 'hi' : 'en')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all text-sm font-medium"
+            className="flex items-center gap-1.5 px-3 min-h-[44px] rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all text-sm font-medium"
             title="Toggle language"
           >
             <Globe2 className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
@@ -343,7 +343,7 @@ export default function Chat() {
             <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               Listening… speak now
-              <button onClick={stopListening} className="ml-auto hover:text-red-700 dark:hover:text-red-300">
+              <button onClick={stopListening} className="w-11 h-11 flex items-center justify-center ml-auto hover:text-red-700 dark:hover:text-red-300">
                 <StopCircle className="w-4 h-4" />
               </button>
             </div>

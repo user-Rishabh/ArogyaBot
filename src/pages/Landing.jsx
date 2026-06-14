@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import {
-  HeartPulse, MessageCircle, Mic, Zap, ChevronRight, Star, Clock, Sun, Moon
+  HeartPulse, MessageCircle, Mic, Zap, ChevronRight, Star, Clock, Sun, Moon, Menu, X
 } from 'lucide-react'
 
 function FadeIn({ children, className = '' }) {
@@ -50,6 +50,7 @@ export default function Landing() {
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const fn = () => setIsScrolled(window.scrollY > 10)
@@ -69,23 +70,70 @@ export default function Landing() {
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <span className="text-xl font-extrabold text-slate-800 dark:text-white tracking-tight">ArogyaBot 🏥</span>
-          <div className="flex items-center gap-4">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4">
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
-              className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <Link to="/login" className="text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+            <Link to="/login" className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors px-3">
               Login
             </Link>
-            <Link to="/signup" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm duration-300 hover:scale-105">
+            <Link to="/signup" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 min-h-[44px] inline-flex items-center justify-center rounded-xl transition-all shadow-sm duration-300 hover:scale-105">
               Sign Up
             </Link>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="flex items-center gap-2 md:hidden">
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle dark mode"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white/95 dark:bg-slate-900/95 border-b border-indigo-100 dark:border-slate-800 px-6 py-4 flex flex-col gap-3 transition-colors duration-300 animate-slide-up">
+            <Link
+              to="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="w-full min-h-[44px] flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold border border-slate-200 dark:border-slate-700 rounded-xl"
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              onClick={() => setIsMenuOpen(false)}
+              className="w-full min-h-[44px] flex items-center justify-center bg-indigo-600 text-white font-semibold rounded-xl"
+            >
+              Sign Up
+            </Link>
+            <button
+              onClick={() => { handleDemo(); setIsMenuOpen(false); }}
+              className="w-full min-h-[44px] flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl"
+            >
+              Try Demo
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
