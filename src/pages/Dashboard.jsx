@@ -4,7 +4,6 @@ import {
   HeartPulse, MessageCircle, Plus, LogOut,
   User, Sparkles, Clock, ChevronRight, Sun, Moon
 } from 'lucide-react'
-import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
@@ -15,27 +14,6 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [sessions, setSessions] = useState([])
-  const [sessionsLoading, setSessionsLoading] = useState(true)
-
-  function getRelativeTime(dateStr) {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const now = new Date()
-    const diffMs = now - date
-
-    if (isNaN(diffMs)) return ''
-
-    const diffMins = Math.floor(diffMs / 60000)
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
-
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-
-    const diffDays = Math.floor(diffHours / 24)
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-  }
 
   useEffect(() => {
     if (!user) return
@@ -46,36 +24,6 @@ export default function Dashboard() {
       .single()
       .then(({ data }) => { setProfile(data); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [user])
-
-  useEffect(() => {
-    if (!user?.id) return
-
-    const fetchHistory = async () => {
-      try {
-        setSessionsLoading(true)
-        const baseUrl = import.meta.env.VITE_API_URL || ''
-        const url = baseUrl.endsWith('/api')
-          ? `${baseUrl}/chat/history/${user.id}`
-          : `${baseUrl}/api/chat/history/${user.id}`
-
-        const { data } = await axios.get(url)
-        if (Array.isArray(data)) {
-          const sorted = data.sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.created_at || 0)
-            const dateB = new Date(b.createdAt || b.created_at || 0)
-            return dateB - dateA
-          })
-          setSessions(sorted)
-        }
-      } catch (err) {
-        console.error('Error fetching chat history:', err)
-      } finally {
-        setSessionsLoading(false)
-      }
-    }
-
-    fetchHistory()
   }, [user])
 
   const displayName = profile?.name || user?.email?.split('@')[0] || 'User'
@@ -169,56 +117,6 @@ export default function Dashboard() {
           >
             <MessageCircle className="w-5 h-5" /> New Chat
           </button>
-        </div>
-
-        {/* Recent Chats */}
-        <div className="mb-12 animate-custom-slide-up">
-          <h2 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
-            Recent Chats
-          </h2>
-          {sessionsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[1, 2].map((n) => (
-                <div key={n} className="animate-pulse bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-50/60 dark:border-slate-700/60 h-24 flex flex-col justify-between shadow-sm">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
-                </div>
-              ))}
-            </div>
-          ) : sessions.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-indigo-100 dark:border-slate-700 text-center py-8 shadow-sm">
-              <p className="text-slate-500 dark:text-slate-400 text-sm">
-                No chats yet — start your first conversation
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {sessions.map((session) => {
-                const sId = session.sessionId || session.id
-                const rawTitle = session.firstMessage || session.title || session.message || "Untitled Chat"
-                const title = rawTitle.length > 50 ? rawTitle.substring(0, 50) + "..." : rawTitle
-                const time = getRelativeTime(session.createdAt || session.created_at)
-
-                return (
-                  <div
-                    key={sId}
-                    onClick={() => navigate(`/chat/${sId}`)}
-                    className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between h-28 shadow-sm group"
-                  >
-                    <div className="flex justify-between items-start gap-2">
-                      <p className="text-slate-700 dark:text-slate-200 font-medium text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {title}
-                      </p>
-                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 group-hover:translate-x-0.5 transition-transform duration-200" />
-                    </div>
-                    <span className="text-slate-400 dark:text-slate-500 text-xs mt-2">
-                      {time}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
         </div>
 
         {/* Tips */}

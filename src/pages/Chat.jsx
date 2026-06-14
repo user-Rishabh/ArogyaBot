@@ -354,11 +354,11 @@ export default function Chat() {
             {isSupported && (
               <button
                 id="chat-mic-btn"
-                onClick={startListening}
+                onClick={handleMicToggle}
                 aria-label={isListening ? 'Stop listening' : 'Start voice input'}
                 className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
                   isListening
-                    ? 'bg-red-500 hover:bg-red-400 text-white shadow-lg shadow-red-500/30 animate-mic-pulse'
+                    ? 'bg-red-500 hover:bg-red-400 text-white shadow-lg shadow-red-500/30'
                     : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'
                 }`}
               >
