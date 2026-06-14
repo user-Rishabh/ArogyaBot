@@ -6,6 +6,9 @@ import {
   HeartPulse, MessageCircle, Mic, Zap, ChevronRight, Star, Clock, Sun, Moon, Menu, X
 } from 'lucide-react'
 
+const WHATSAPP_NUMBER = '14155238886'
+const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
+
 function FadeIn({ children, className = '' }) {
   const [isVisible, setIsVisible] = useState(false)
   const ref = useState(() => {
@@ -164,6 +167,14 @@ export default function Landing() {
             <button id="hero-demo-btn" onClick={handleDemo} className="inline-flex items-center gap-2 px-6 py-4 text-base font-semibold text-amber-500 hover:text-amber-600 transition-all duration-300 hover:scale-105">
               <Zap className="w-5 h-5 fill-amber-500" /> Try Demo
             </button>
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_DEFAULT_TEXT)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-500 hover:bg-green-600 text-white text-base font-semibold px-8 py-4 rounded-full transition-all shadow-lg flex items-center gap-2 hover:scale-105 duration-300"
+            >
+              <MessageCircle className="w-5 h-5 fill-white text-green-500" /> Chat on WhatsApp
+            </a>
           </div>
           <p className="mt-8 text-slate-500 dark:text-slate-400 text-sm">
             Trusted by <span className="text-indigo-600 dark:text-indigo-400 font-semibold">10,000+</span> users across India
