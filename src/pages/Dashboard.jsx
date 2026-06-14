@@ -9,6 +9,9 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
 
+const WHATSAPP_NUMBER = '14155238886'
+const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
+
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
@@ -108,6 +111,16 @@ export default function Dashboard() {
                 {loading ? '…' : displayName}
               </span>
             </div>
+            {/* WhatsApp button */}
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_DEFAULT_TEXT)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-11 h-11 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm transition-all duration-200 hover:scale-105"
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle className="w-5 h-5 fill-white text-green-500" />
+            </a>
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}
