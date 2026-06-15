@@ -6,7 +6,7 @@ require('dotenv').config()
 const chatRoutes = require('./routes/chat')
 
 const app = express()
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({ origin: ['http://localhost:5173',' https://arogya-bot-sooty.vercel.app/']}))
 app.use(express.json())
 
 // Routes
