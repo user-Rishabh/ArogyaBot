@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
     const botResponse = await getChatResponse(message, chatHistory)
 
     if (sessionId) {
-      await supabase.from('messages').insert([
+      const { error: messageError } = await supabase.from('messages').insert([
         {
           session_id: sessionId,
           role: 'user',
@@ -30,6 +30,10 @@ router.post('/', async (req, res) => {
           language: language
         }
       ])
+
+      if (messageError) {
+        console.error('Message save error:', messageError)
+      }
     }
 
     res.json({ response: botResponse })
@@ -44,16 +48,33 @@ router.post('/', async (req, res) => {
 router.post('/session', async (req, res) => {
   const { userId, firstMessage } = req.body
 
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' })
+  }
+
+  if (!firstMessage) {
+    return res.status(400).json({ error: 'First message is required' })
+  }
+
   try {
-    const title = firstMessage.substring(0, 50) + '...'
+    const title =
+      firstMessage.length > 50
+        ? firstMessage.substring(0, 50) + '...'
+        : firstMessage
 
     const { data, error } = await supabase
       .from('chat_sessions')
-      .insert({ user_id: userId, title })
+      .insert({
+        user_id: userId,
+        title: title
+      })
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Session create error:', error)
+      return res.status(500).json({ error: 'Failed to create session' })
+    }
 
     res.json({ sessionId: data.id, title: data.title })
   } catch (error) {
@@ -66,6 +87,10 @@ router.post('/session', async (req, res) => {
 router.get('/history/:userId', async (req, res) => {
   const { userId } = req.params
 
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' })
+  }
+
   try {
     const { data, error } = await supabase
       .from('chat_sessions')
@@ -73,10 +98,14 @@ router.get('/history/:userId', async (req, res) => {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+      console.error('History fetch error:', error)
+      return res.status(500).json({ error: 'Failed to fetch history' })
+    }
 
-    res.json({ sessions: data })
+    res.json({ sessions: data || [] })
   } catch (error) {
+    console.error('History error:', error)
     res.status(500).json({ error: 'Failed to fetch history' })
   }
 })

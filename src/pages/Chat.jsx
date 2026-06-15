@@ -176,32 +176,40 @@ export default function Chat() {
           window.history.replaceState(null, '', `/chat/${demoSessionId}`)
         }
       } else {
-        /* ── Real API mode ── */
-        let activeSessionId = sessionId
+  /* ── Real API mode ── */
+  let activeSessionId = sessionId
 
-        if (!activeSessionId) {
-          const { data } = await axios.post('/api/chat/session', {
-            userId:       user?.id,
-            firstMessage: text,
-          })
-          activeSessionId = data.sessionId
-          setSessionId(activeSessionId)
-          window.history.replaceState(null, '', `/chat/${activeSessionId}`)
-        }
-
-        const { data } = await axios.post('/api/chat', {
-          message:     text,
-          sessionId:   activeSessionId,
-          language,
-          chatHistory: buildHistory(updatedMessages),
-        })
-        reply = data.reply || data.message || 'I could not understand that. Please try again.'
+  if (!activeSessionId) {
+    const { data } = await axios.post(
+      'https://arogyabot-backend.onrender.com/api/chat/session',
+      {
+        userId: user?.id,
+        firstMessage: text,
       }
+    )
 
-      setMessages(prev => [...prev, {
-        role: 'assistant', content: reply, id: Date.now() + 1,
-      }])
-    } catch (err) {
+    activeSessionId = data.sessionId
+    setSessionId(activeSessionId)
+    window.history.replaceState(null, '', `/chat/${activeSessionId}`)
+  }
+
+  const { data } = await axios.post(
+    'https://arogyabot-backend.onrender.com/api/chat',
+    {
+      message: text,
+      sessionId: activeSessionId,
+      language,
+      chatHistory: buildHistory(updatedMessages),
+    }
+  )
+
+  reply = data.response || data.reply || data.message || 'I could not understand that. Please try again.'
+}
+
+setMessages(prev => [...prev, {
+  role: 'assistant', content: reply, id: Date.now() + 1,
+}])
+} catch (err) {
       setMessages(prev => [...prev, {
         role:    'assistant',
         content: 'Sorry, something went wrong. Please check your connection and try again.',
