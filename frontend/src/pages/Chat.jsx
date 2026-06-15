@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useSpeech } from '../hooks/useSpeech'
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 /* ─── Demo responses pool ─── */
 const DEMO_RESPONSES_EN = {
@@ -184,7 +184,10 @@ export default function Chat() {
         let activeSessionId = sessionId
 
         if (!activeSessionId) {
-          const { data } = await axios.post(`${API_URL}/api/chat/session`, {
+          const sessionUrl = API_URL.endsWith('/api')
+            ? `${API_URL}/chat/session`
+            : `${API_URL}/api/chat/session`
+          const { data } = await axios.post(sessionUrl, {
             userId:       user?.id,
             firstMessage: text,
           })
@@ -193,7 +196,10 @@ export default function Chat() {
           window.history.replaceState(null, '', `/chat/${activeSessionId}`)
         }
 
-        const { data } = await axios.post(`${API_URL}/api/chat`, {
+        const chatUrl = API_URL.endsWith('/api')
+          ? `${API_URL}/chat`
+          : `${API_URL}/api/chat`
+        const { data } = await axios.post(chatUrl, {
           message:     text,
           sessionId:   activeSessionId,
           language,
