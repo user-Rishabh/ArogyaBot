@@ -8,6 +8,7 @@ const chatRoutes = require('./routes/chat')
 const app = express()
 app.use(cors({ origin: ['http://localhost:5173',' https://arogya-bot-sooty.vercel.app/']}))
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 // Routes
 app.use('/api/chat', chatRoutes)
