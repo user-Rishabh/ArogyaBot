@@ -1,0 +1,36 @@
+{
+  "diseases": [
+    {
+      "name": "Dengue",
+      "symptoms": ["high fever", "severe headache", "pain behind eyes", "joint and muscle pain", "rash"],
+      "prevention": ["use mosquito repellent", "wear full sleeves", "eliminate stagnant water"],
+      "when_to_see_doctor": "If fever lasts more than 2 days"
+    },
+    {
+      "name": "Typhoid",
+      "symptoms": ["sustained fever", "weakness", "stomach pain", "headache", "loss of appetite"],
+      "prevention": ["drink boiled water", "wash hands before eating", "eat freshly cooked food"],
+      "when_to_see_doctor": "Immediately — requires antibiotic treatment"
+    },
+    {
+      "name": "Malaria",
+      "symptoms": ["cyclical fever", "chills", "sweating", "headache", "muscle pain"],
+      "prevention": ["sleep under mosquito nets", "use mosquito repellent", "wear long sleeves"],
+      "when_to_see_doctor": "Immediately — can be life threatening"
+    }
+  ],
+  "vaccines": [
+    {
+      "name": "COVID-19",
+      "schedule": "2 doses + booster",
+      "eligible": "18+ years",
+      "where": "Nearest government health centre or CoWIN portal"
+    },
+    {
+      "name": "Polio",
+      "schedule": "Multiple doses from birth to 5 years",
+      "eligible": "Children 0-5 years",
+      "where": "Anganwadi centre or government hospital"
+    }
+  ]
+}
