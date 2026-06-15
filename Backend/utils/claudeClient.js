@@ -1,10 +1,10 @@
-const Anthropic = require('@anthropic-ai/sdk')
+const { GoogleGenerativeAI } = require('@google/generative-ai')
 const healthData = require('../data/healthData.json')
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
+const model = genAI.getGenerativeModel({
+  model: 'gemini-1.5-flash'
 })
-
 // Build system prompt with health data context
 const buildSystemPrompt = () => {
   const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
@@ -37,14 +37,16 @@ const getChatResponse = async (userMessage, chatHistory = []) => {
     content: userMessage
   })
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 500,
-    system: buildSystemPrompt(),
-    messages: messages
-  })
+ const prompt = `
+${buildSystemPrompt()}
 
-  return response.content[0].text
+Conversation:
+${messages.map(m => `${m.role}: ${m.content}`).join('\n')}
+`
+
+const result = await model.generateContent(prompt)
+
+return result.response.text()
 }
 
 module.exports = { getChatResponse }
