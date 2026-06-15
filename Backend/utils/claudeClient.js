@@ -1,3 +1,4 @@
+
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 const healthData = require('../data/healthData.json')
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
