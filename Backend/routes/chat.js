@@ -4,7 +4,6 @@ const { getChatResponse } = require('../utils/claudeClient')
 const supabase = require('../lib/supabase')
 
 // POST /api/chat
-// Body: { message, sessionId, language, chatHistory }
 router.post('/', async (req, res) => {
   const { message, sessionId, language = 'en', chatHistory = [] } = req.body
 
@@ -48,24 +47,39 @@ router.post('/', async (req, res) => {
 })
 
 // POST /api/chat/session
-// Create a new chat session
 router.post('/session', async (req, res) => {
   const { userId, firstMessage } = req.body
 
-  try {
-    const title = firstMessage.substring(0, 50) + '...'
+  if (!userId) return res.status(400).json({ error: 'User ID is required' })
+  if (!firstMessage) return res.status(400).json({ error: 'First message is required' })
 
-    const { data, error } = await supabase
+  try {
+    const title = firstMessage.length > 50 
+      ? firstMessage.substring(0, 50) + '...' 
+      : firstMessage
+
+    // Step 1: Insert without select
+    const { error: insertError } = await supabase
       .from('chat_sessions')
-      .insert({ user_id: userId, title })
-      .select()
+      .insert({ user_id: userId, title: title })
+
+    if (insertError) throw insertError
+
+    // Step 2: Fetch the newly created session separately
+    const { data, error: fetchError } = await supabase
+      .from('chat_sessions')
+      .select('id, title')
+      .eq('user_id', userId)
+      .eq('title', title)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single()
 
-    if (error) throw error
+    if (fetchError) throw fetchError
 
     res.json({ sessionId: data.id, title: data.title })
   } catch (error) {
-    console.error('Session error:', error)
+    console.error('Session error:', JSON.stringify(error))
     res.status(500).json({ error: 'Failed to create session' })
   }
 })
@@ -74,17 +88,20 @@ router.post('/session', async (req, res) => {
 router.get('/history/:userId', async (req, res) => {
   const { userId } = req.params
 
+  if (!userId) return res.status(400).json({ error: 'User ID is required' })
+
   try {
     const { data, error } = await supabase
       .from('chat_sessions')
-      .select('*, messages(content, role, created_at)')
+      .select('id, title, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    res.json({ sessions: data })
+    res.json({ sessions: data || [] })
   } catch (error) {
+    console.error('History error:', error)
     res.status(500).json({ error: 'Failed to fetch history' })
   }
 })
