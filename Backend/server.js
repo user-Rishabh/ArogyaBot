@@ -25,8 +25,16 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/api/chat', chatRoutes)
 app.use('/api/whatsapp', whatsappRoutes) 
 
+const { modelName } = require('./utils/claudeClient')
+
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ArogyaBot backend is running!' })
+  res.json({
+    status: 'ArogyaBot backend is running!',
+    model: modelName,
+    hasApiKey: !!process.env.GOOGLE_API_KEY,
+    apiKeyLength: process.env.GOOGLE_API_KEY ? process.env.GOOGLE_API_KEY.length : 0,
+    apiKeyPrefix: process.env.GOOGLE_API_KEY ? process.env.GOOGLE_API_KEY.substring(0, 5) : ''
+  })
 })
 
 const PORT = process.env.PORT || 3000
