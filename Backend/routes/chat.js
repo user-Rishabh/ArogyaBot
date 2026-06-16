@@ -37,21 +37,30 @@ router.post('/session', async (req, res) => {
   if (!firstMessage) return res.status(400).json({ error: 'First message is required' })
 
   try {
-    const title = firstMessage.length > 50 ? firstMessage.substring(0, 50) + '...' : firstMessage
+    const title = firstMessage.length > 50 
+      ? firstMessage.substring(0, 50) + '...' 
+      : firstMessage
 
-    console.log('Creating session for userId:', userId)
-
-    const { data, error } = await supabase
+    // Step 1: Insert without select
+    const { error: insertError } = await supabase
       .from('chat_sessions')
-      .insert([{ user_id: userId, title }])
+      .insert({ user_id: userId, title: title })
+
+    if (insertError) throw insertError
+
+    // Step 2: Fetch the newly created session separately
+    const { data, error: fetchError } = await supabase
+      .from('chat_sessions')
       .select('id, title')
+      .eq('user_id', userId)
+      .eq('title', title)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
 
-    console.log('Session data:', data)
-    console.log('Session error:', error)
+    if (fetchError) throw fetchError
 
-    if (error) throw error
-
-    res.json({ sessionId: data[0].id, title: data[0].title })
+    res.json({ sessionId: data.id, title: data.title })
   } catch (error) {
     console.error('Session error:', JSON.stringify(error))
     res.status(500).json({ error: 'Failed to create session' })
