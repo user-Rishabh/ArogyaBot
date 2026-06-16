@@ -60,7 +60,7 @@ export default function Dashboard() {
       .from('profiles')
       .select('name')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) {
           setProfile(data)

@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
       ])
     }
 
-    res.json({ response: botResponse })
+    res.json({ response: botResponse, reply: botResponse })
   } catch (error) {
     console.error('Chat error:', error)
     res.status(500).json({ error: 'Failed to get response. Please try again.' })

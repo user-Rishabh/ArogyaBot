@@ -1,7 +1,8 @@
+require('dotenv').config()
 const whatsappRoutes = require('./routes/whatsapp')
 const express = require('express')
 const cors = require('cors')
-require('dotenv').config()
+
 
 const chatRoutes = require('./routes/chat')
 
@@ -16,7 +17,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }))
-app.options('*', cors())
+app.options('*all', cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 

@@ -205,7 +205,7 @@ export default function Chat() {
           language,
           chatHistory: buildHistory(updatedMessages),
         })
-        reply = data.reply || data.message || 'I could not understand that. Please try again.'
+        reply = data.reply || data.response || data.message || 'I could not understand that. Please try again.'
       }
 
       setMessages(prev => [...prev, {
