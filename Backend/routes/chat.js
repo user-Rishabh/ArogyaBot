@@ -59,12 +59,22 @@ router.post('/session', async (req, res) => {
       ? firstMessage.substring(0, 50) + '...'
       : firstMessage
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('chat_sessions')
       .insert([{ user_id: userId, title }])
-      .select('*')
 
     if (error) throw error
+
+    // Fetch the session we just created
+    const { data, error: fetchError } = await supabase
+      .from('chat_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('title', title)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (fetchError) throw fetchError
 
     res.json({ sessionId: data[0].id, title: data[0].title })
   } catch (error) {
