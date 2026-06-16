@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import Landing   from './pages/Landing'
 import Login     from './pages/Login'
 import Signup    from './pages/Signup'
@@ -11,11 +12,11 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center transition-colors duration-300">
         <div className="flex gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-bounce-dot dot-1" />
-          <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-bounce-dot dot-2" />
-          <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-bounce-dot dot-3" />
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce-dot dot-1" />
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce-dot dot-2" />
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce-dot dot-3" />
         </div>
       </div>
     )
@@ -53,10 +54,13 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
+
