@@ -62,12 +62,25 @@ router.post('/session', async (req, res) => {
         ? firstMessage.substring(0, 50) + '...'
         : firstMessage
 
+    router.post('/session', async (req, res) => {
+  const { userId, firstMessage } = req.body
+
+  try {
+    const title = firstMessage.substring(0, 50) + '...'
+
     const { data, error } = await supabase
       .from('chat_sessions')
-      .insert({
-        user_id: userId,
-        title: title
-      })
+      .insert([{ user_id: userId, title }])
+      .select('*')
+
+    if (error) throw error
+
+    res.json({ sessionId: data[0].id, title: data[0].title })
+  } catch (error) {
+    console.error('Session error:', error)
+    res.status(500).json({ error: 'Failed to create session' })
+  }
+})
       .select()
       .single()
 
