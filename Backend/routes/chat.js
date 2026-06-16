@@ -4,7 +4,6 @@ const { getChatResponse } = require('../utils/claudeClient')
 const supabase = require('../lib/supabase')
 
 // POST /api/chat
-// Body: { message, sessionId, language, chatHistory }
 router.post('/', async (req, res) => {
   const { message, sessionId, language = 'en', chatHistory = [] } = req.body
 
@@ -44,7 +43,6 @@ router.post('/', async (req, res) => {
 })
 
 // POST /api/chat/session
-// Create a new chat session
 router.post('/session', async (req, res) => {
   const { userId, firstMessage } = req.body
 
@@ -57,16 +55,9 @@ router.post('/session', async (req, res) => {
   }
 
   try {
-    const title =
-      firstMessage.length > 50
-        ? firstMessage.substring(0, 50) + '...'
-        : firstMessage
-
-    router.post('/session', async (req, res) => {
-  const { userId, firstMessage } = req.body
-
-  try {
-    const title = firstMessage.substring(0, 50) + '...'
+    const title = firstMessage.length > 50
+      ? firstMessage.substring(0, 50) + '...'
+      : firstMessage
 
     const { data, error } = await supabase
       .from('chat_sessions')
@@ -76,20 +67,6 @@ router.post('/session', async (req, res) => {
     if (error) throw error
 
     res.json({ sessionId: data[0].id, title: data[0].title })
-  } catch (error) {
-    console.error('Session error:', error)
-    res.status(500).json({ error: 'Failed to create session' })
-  }
-})
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Session create error:', error)
-      return res.status(500).json({ error: 'Failed to create session' })
-    }
-
-    res.json({ sessionId: data.id, title: data.title })
   } catch (error) {
     console.error('Session error:', error)
     res.status(500).json({ error: 'Failed to create session' })
