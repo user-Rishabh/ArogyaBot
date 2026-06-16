@@ -4,7 +4,7 @@ const healthData = require('../data/healthData.json')
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 
 const model = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash'
+  model: 'gemini-3.5-flash'
 })
 // Build system prompt with health data context
 const buildSystemPrompt = () => {

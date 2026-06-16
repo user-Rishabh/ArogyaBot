@@ -16,21 +16,29 @@ router.post('/', async (req, res) => {
     const botResponse = await getChatResponse(message, chatHistory)
 
     if (sessionId) {
-      await supabase.from('messages').insert([
-        {
-          session_id: sessionId,
-          role: 'user',
-          content: message,
-          language: language
-        },
-        {
-          session_id: sessionId,
-          role: 'assistant',
-          content: botResponse,
-          language: language
+      try {
+        const { error: dbError } = await supabase.from('messages').insert([
+          {
+            session_id: sessionId,
+            role: 'user',
+            content: message,
+            language: language
+          },
+          {
+            session_id: sessionId,
+            role: 'assistant',
+            content: botResponse,
+            language: language
+          }
+        ])
+        if (dbError) {
+          console.error('Database message insert error:', dbError)
         }
-      ])
+      } catch (dbErr) {
+        console.error('Database message insert exception:', dbErr)
+      }
     }
+
 
     res.json({ response: botResponse, reply: botResponse })
   } catch (error) {
