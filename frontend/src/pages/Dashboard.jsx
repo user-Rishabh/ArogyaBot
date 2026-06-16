@@ -77,20 +77,15 @@ export default function Dashboard() {
     const fetchHistory = async () => {
       try {
         setSessionsLoading(true)
-        const baseUrl = import.meta.env.VITE_API_URL || ''
-        const url = baseUrl.endsWith('/api')
-          ? `${baseUrl}/chat/history/${user.id}`
-          : `${baseUrl}/api/chat/history/${user.id}`
+        const { data, error } = await supabase
+          .from('chat_sessions')
+          .select('id, title, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
 
-        const { data } = await axios.get(url)
-        if (Array.isArray(data)) {
-          const sorted = data.sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.created_at || 0)
-            const dateB = new Date(b.createdAt || b.created_at || 0)
-            return dateB - dateA
-          })
-          setSessions(sorted)
-        }
+        if (error) throw error
+
+        setSessions(data || [])
       } catch (err) {
         console.error('Error fetching chat history:', err)
       } finally {

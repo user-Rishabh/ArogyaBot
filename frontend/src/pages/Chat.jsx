@@ -201,6 +201,39 @@ export default function Chat() {
     inputRef.current?.focus()
   }, [])
 
+  /* Fetch existing messages for this session if it exists */
+  useEffect(() => {
+    if (!sessionId || isDemo) return
+
+    const fetchSessionMessages = async () => {
+      try {
+        setIsLoading(true)
+        const { data, error } = await supabase
+          .from('messages')
+          .select('role, content, created_at')
+          .eq('session_id', sessionId)
+          .order('created_at', { ascending: true })
+
+        if (error) throw error
+
+        if (Array.isArray(data)) {
+          const formatted = data.map((msg, index) => ({
+            id: index,
+            role: msg.role,
+            content: msg.content
+          }))
+          setMessages(formatted)
+        }
+      } catch (err) {
+        console.error('Error fetching session messages:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSessionMessages()
+  }, [sessionId, isDemo])
+
   function handleMicToggle() {
     if (isListening) {
       stopListening()
