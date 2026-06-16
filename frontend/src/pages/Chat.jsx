@@ -208,10 +208,11 @@ export default function Chat() {
         reply = data.reply || data.response || data.message || 'I could not understand that. Please try again.'
       }
 
-      setMessages(prev => [...prev, {
-        role: 'assistant', content: reply, id: Date.now() + 1,
-      }])
-    } catch (err) {
+
+setMessages(prev => [...prev, {
+  role: 'assistant', content: reply, id: Date.now() + 1,
+}])
+} catch (err) {
       setMessages(prev => [...prev, {
         role:    'assistant',
         content: 'Sorry, something went wrong. Please check your connection and try again.',
