@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import EmergencyNumbers from '../components/EmergencyNumbers'
 import {
   HeartPulse, MessageCircle, Mic, Zap, ChevronRight, Star, Clock, Sun, Moon, Menu, X
 } from 'lucide-react'
@@ -316,6 +317,15 @@ export default function Landing() {
                 Create Free Account <ChevronRight className="w-5 h-5" />
               </Link>
             </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Emergency Numbers */}
+      <section className="py-12 px-6 bg-transparent dark:bg-transparent border-t border-slate-100 dark:border-slate-800">
+        <div className="max-w-4xl mx-auto">
+          <FadeIn>
+            <EmergencyNumbers />
           </FadeIn>
         </div>
       </section>

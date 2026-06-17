@@ -32,53 +32,7 @@ RULES:
 7. Be warm and supportive in tone.`
 }
 
-const getGeminiResponse = async (userMessage, chatHistory = [], language = 'en') => {
-  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
-  if (!apiKey) {
-    throw new Error('Gemini API key is not configured.')
-  }
 
-  const messagesList = chatHistory.map(msg => ({
-    role: msg.role,
-    content: msg.content
-  }))
-
-  messagesList.push({
-    role: 'user',
-    content: userMessage
-  })
-
-  const systemPrompt = buildSystemPrompt()
-  const conversationText = messagesList.map(m => `${m.role}: ${m.content}`).join('\n')
-  const promptText = `
-${systemPrompt}
-
-Conversation:
-${conversationText}
-`
-
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
-    {
-      contents: [
-        {
-          parts: [
-            {
-              text: promptText
-            }
-          ]
-        }
-      ]
-    }
-  )
-
-  const candidate = response.data?.candidates?.[0]
-  const replyText = candidate?.content?.parts?.[0]?.text
-  if (!replyText) {
-    throw new Error('Empty response from Gemini API')
-  }
-  return replyText
-}
 
 /* ─── Demo responses pool ─── */
 const DEMO_RESPONSES_EN = {
@@ -300,33 +254,15 @@ export default function Chat() {
           window.history.replaceState(null, '', `/chat/${activeSessionId}`)
         }
 
-        // Call Gemini directly from the frontend
-        reply = await getGeminiResponse(text, buildHistory(updatedMessages), language)
+        // Call the backend API (which securely calls Gemini and stores messages in Supabase)
+        const response = await axios.post(`${API_URL}/chat`, {
+          message: text,
+          sessionId: activeSessionId,
+          language,
+          chatHistory: buildHistory(updatedMessages)
+        })
 
-        // Store messages directly in Supabase (non-blocking)
-        if (activeSessionId) {
-          try {
-            const { error: dbError } = await supabase.from('messages').insert([
-              {
-                session_id: activeSessionId,
-                role: 'user',
-                content: text,
-                language: language
-              },
-              {
-                session_id: activeSessionId,
-                role: 'assistant',
-                content: reply,
-                language: language
-              }
-            ])
-            if (dbError) {
-              console.error('Database message insert error:', dbError)
-            }
-          } catch (dbErr) {
-            console.error('Database message insert exception:', dbErr)
-          }
-        }
+        reply = response.data.reply || response.data.response
       }
 
 

@@ -39,16 +39,39 @@ const getChatResponse = async (userMessage, chatHistory = []) => {
     content: userMessage
   })
 
- const prompt = `
+  const prompt = `
 ${buildSystemPrompt()}
 
 Conversation:
 ${messages.map(m => `${m.role}: ${m.content}`).join('\n')}
 `
 
-const result = await model.generateContent(prompt)
+  const modelsToTry = [
+    'gemini-3.5-flash',
+    'gemini-2.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash-lite'
+  ]
 
-return result.response.text()
+  let lastError = null
+
+  for (const currentModelName of modelsToTry) {
+    try {
+      console.log(`Attempting generation with model: ${currentModelName}`)
+      const currentModel = genAI.getGenerativeModel({ model: currentModelName })
+      const result = await currentModel.generateContent(prompt)
+      const text = result.response.text()
+      if (text) {
+        console.log(`Successfully generated content using: ${currentModelName}`)
+        return text
+      }
+    } catch (err) {
+      console.warn(`Model ${currentModelName} failed:`, err.message)
+      lastError = err
+    }
+  }
+
+  throw lastError || new Error('All Gemini model fallbacks failed')
 }
 
 module.exports = { getChatResponse, modelName }

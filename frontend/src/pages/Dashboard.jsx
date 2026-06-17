@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import {
   HeartPulse, MessageCircle, Plus, LogOut,
   User, Sparkles, Clock, ChevronRight, Sun, Moon,
-  Mail, AlertCircle, CheckCircle, Info
+  Mail, AlertCircle, CheckCircle, Info, Trash2
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
+import EmergencyNumbers from '../components/EmergencyNumbers'
 
 const WHATSAPP_NUMBER = '14155238886'
 const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
@@ -128,6 +129,24 @@ export default function Dashboard() {
 
   async function handleLogout() { await logout(); navigate('/') }
   function startNewChat() { navigate('/chat') }
+
+  async function handleDeleteSession(sessionId) {
+    if (!window.confirm('Delete this chat?')) return
+
+    try {
+      if (!user?.isDemo) {
+        const { error } = await supabase
+          .from('chat_sessions')
+          .delete()
+          .eq('id', sessionId)
+        if (error) throw error
+      }
+      setSessions(prev => prev.filter(s => (s.id || s.sessionId) !== sessionId))
+    } catch (err) {
+      console.error('Error deleting session:', err)
+      alert('Failed to delete chat: ' + err.message)
+    }
+  }
 
   async function handleSaveProfile(e) {
     e.preventDefault()
@@ -370,7 +389,20 @@ export default function Dashboard() {
                         <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                           {title}
                         </p>
-                        <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 group-hover:translate-x-0.5 transition-transform duration-200" />
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSession(sId);
+                            }}
+                            className="p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700/60"
+                            title="Delete Chat"
+                            aria-label="Delete chat"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform duration-200" />
+                        </div>
                       </div>
                       <span className="text-slate-400 dark:text-slate-500 text-xs mt-2 font-medium">
                         {time}
@@ -380,6 +412,9 @@ export default function Dashboard() {
                 })}
               </div>
             )}
+            <div className="pt-6">
+              <EmergencyNumbers />
+            </div>
           </div>
         )}
 
