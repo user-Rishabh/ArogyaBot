@@ -130,22 +130,23 @@ export default function Dashboard() {
   async function handleLogout() { await logout(); navigate('/') }
   function startNewChat() { navigate('/chat') }
 
-  async function handleDeleteSession(sessionId) {
+  const handleDeleteSession = async (sessionId) => {
     if (!window.confirm('Delete this chat?')) return
-
-    try {
-      if (!user?.isDemo) {
-        const { error } = await supabase
-          .from('chat_sessions')
-          .delete()
-          .eq('id', sessionId)
-        if (error) throw error
-      }
-      setSessions(prev => prev.filter(s => (s.id || s.sessionId) !== sessionId))
-    } catch (err) {
-      console.error('Error deleting session:', err)
-      alert('Failed to delete chat: ' + err.message)
+    
+    // Delete from Supabase first
+    const { error } = await supabase
+      .from('chat_sessions')
+      .delete()
+      .eq('id', sessionId)
+    
+    if (error) {
+      console.error('Delete error:', error)
+      alert('Failed to delete. Try again.')
+      return
     }
+    
+    // Only remove from local state if Supabase delete succeeded
+    setSessions(prev => prev.filter(s => s.id !== sessionId))
   }
 
   async function handleSaveProfile(e) {
