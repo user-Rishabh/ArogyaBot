@@ -1,13 +1,12 @@
-
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 const healthData = require('../data/healthData.json')
+
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 
-const modelName = 'gemini-3.5-flash'
 const model = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash-8b'
+  model: 'gemini-2.5-flash'
 })
-// Build system prompt with health data context
+
 const buildSystemPrompt = () => {
   const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
   const vaccineNames = healthData.vaccines.map(v => v.name).join(', ')
@@ -27,7 +26,6 @@ RULES:
 7. Be warm and supportive in tone.`
 }
 
-// Main function to call Claude
 const getChatResponse = async (userMessage, chatHistory = []) => {
   const messages = chatHistory.map(msg => ({
     role: msg.role,
@@ -46,32 +44,8 @@ Conversation:
 ${messages.map(m => `${m.role}: ${m.content}`).join('\n')}
 `
 
-  const modelsToTry = [
-    'gemini-3.5-flash',
-    'gemini-2.5-flash',
-    'gemini-3.1-flash-lite',
-    'gemini-2.5-flash-lite'
-  ]
-
-  let lastError = null
-
-  for (const currentModelName of modelsToTry) {
-    try {
-      console.log(`Attempting generation with model: ${currentModelName}`)
-      const currentModel = genAI.getGenerativeModel({ model: currentModelName })
-      const result = await currentModel.generateContent(prompt)
-      const text = result.response.text()
-      if (text) {
-        console.log(`Successfully generated content using: ${currentModelName}`)
-        return text
-      }
-    } catch (err) {
-      console.warn(`Model ${currentModelName} failed:`, err.message)
-      lastError = err
-    }
-  }
-
-  throw lastError || new Error('All Gemini model fallbacks failed')
+  const result = await model.generateContent(prompt)
+  return result.response.text()
 }
 
-module.exports = { getChatResponse, modelName }
+module.exports = { getChatResponse }
