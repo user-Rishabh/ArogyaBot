@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import {
   HeartPulse, MessageCircle, Plus, LogOut,
   User, Sparkles, Clock, ChevronRight, Sun, Moon,
-  Mail, AlertCircle, CheckCircle, Info, Trash2
+  Mail, AlertCircle, CheckCircle, Info, Trash2,
+  Activity
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
 import EmergencyNumbers from '../components/EmergencyNumbers'
+import BMICalculator from '../components/BMICalculator'
 
 const WHATSAPP_NUMBER = '14155238886'
 const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
@@ -243,6 +245,7 @@ export default function Dashboard() {
             { id: 'home', label: 'Overview', icon: Sparkles },
             { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
             { id: 'tips', label: 'Tips & Guidelines', icon: Info },
+            { id: 'tools', label: 'Health Tools', icon: Activity },
             { id: 'profile', label: 'Profile Settings', icon: User },
           ].map((tab) => {
             const Icon = tab.icon
@@ -472,6 +475,18 @@ export default function Dashboard() {
                 Always consult a qualified healthcare professional for medical concerns.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Health Tools Tab */}
+        {activeTab === 'tools' && (
+          <div className="animate-custom-fade-in space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Health Tools</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">Calculate your health metrics and get general suggestions.</p>
+            </div>
+            
+            <BMICalculator />
           </div>
         )}
 
