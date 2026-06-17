@@ -57,28 +57,49 @@ Conversation:
 ${conversationText}
 `
 
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
-    {
-      contents: [
+  const modelsToTry = [
+    'gemini-3.5-flash',
+    'gemini-2.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash-lite'
+  ]
+
+  let lastError = null
+
+  for (const currentModelName of modelsToTry) {
+    try {
+      console.log(`Attempting frontend generation with model: ${currentModelName}`)
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/${currentModelName}:generateContent?key=${apiKey}`,
         {
-          parts: [
+          contents: [
             {
-              text: promptText
+              parts: [
+                {
+                  text: promptText
+                }
+              ]
             }
           ]
         }
-      ]
-    }
-  )
+      )
 
-  const candidate = response.data?.candidates?.[0]
-  const replyText = candidate?.content?.parts?.[0]?.text
-  if (!replyText) {
-    throw new Error('Empty response from Gemini API')
+      const candidate = response.data?.candidates?.[0]
+      const replyText = candidate?.content?.parts?.[0]?.text
+      if (replyText) {
+        console.log(`Success with frontend model: ${currentModelName}`)
+        return replyText
+      }
+    } catch (err) {
+      console.warn(`Frontend model ${currentModelName} failed:`, err.response?.data || err.message)
+      lastError = err
+    }
   }
-  return replyText
+
+  throw lastError || new Error('All frontend Gemini model fallbacks failed')
 }
+
+
 
 /* ─── Demo responses pool ─── */
 const DEMO_RESPONSES_EN = {
@@ -300,7 +321,7 @@ export default function Chat() {
           window.history.replaceState(null, '', `/chat/${activeSessionId}`)
         }
 
-        // Call Gemini directly from the frontend
+        // Call Gemini directly from the frontend (with cascade fallback logic)
         reply = await getGeminiResponse(text, buildHistory(updatedMessages), language)
 
         // Store messages directly in Supabase (non-blocking)
