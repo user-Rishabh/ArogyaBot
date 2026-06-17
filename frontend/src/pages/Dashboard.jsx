@@ -4,7 +4,7 @@ import {
   HeartPulse, MessageCircle, Plus, LogOut,
   User, Sparkles, Clock, ChevronRight, Sun, Moon,
   Mail, AlertCircle, CheckCircle, Info, Trash2,
-  Activity
+  Activity, MapPin
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
@@ -12,6 +12,7 @@ import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
 import EmergencyNumbers from '../components/EmergencyNumbers'
 import BMICalculator from '../components/BMICalculator'
+import HospitalFinder from '../components/HospitalFinder'
 
 const WHATSAPP_NUMBER = '14155238886'
 const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
@@ -208,16 +209,19 @@ export default function Dashboard() {
                 {loading ? '…' : displayName}
               </span>
             </div>
-            {/* WhatsApp button */}
-            <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_DEFAULT_TEXT)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-11 h-11 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm transition-all duration-200 hover:scale-105"
-              title="Chat on WhatsApp"
-            >
-              <MessageCircle className="w-5 h-5 fill-white text-green-500" />
-            </a>
+            {/* WhatsApp button with pulse ring */}
+            <div className="relative flex">
+              <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25 pointer-events-none" />
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_DEFAULT_TEXT)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative z-10 w-11 h-11 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm transition-all duration-200 hover:scale-105"
+                title="Chat on WhatsApp"
+              >
+                <MessageCircle className="w-5 h-5 fill-white text-green-500" />
+              </a>
+            </div>
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}
@@ -239,13 +243,14 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-5xl mx-auto px-6 py-12">
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-indigo-100 dark:border-slate-800 mb-8 overflow-x-auto gap-1">
+        {/* Horizontal Navigation Tabs */}
+        <div className="flex justify-start md:justify-center items-center border-b border-indigo-100 dark:border-slate-800/80 pb-4 mb-8 overflow-x-auto scrollbar-hide gap-1.5 md:gap-2">
           {[
             { id: 'home', label: 'Overview', icon: Sparkles },
             { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
             { id: 'tips', label: 'Tips & Guidelines', icon: Info },
             { id: 'tools', label: 'Health Tools', icon: Activity },
+            { id: 'care', label: 'Care Finder', icon: MapPin },
             { id: 'profile', label: 'Profile Settings', icon: User },
           ].map((tab) => {
             const Icon = tab.icon
@@ -257,17 +262,19 @@ export default function Dashboard() {
                   setActiveTab(tab.id)
                   setSaveMessage('')
                 }}
-                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all duration-200 whitespace-nowrap -mb-[2px] ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200 whitespace-nowrap ${
                   isActive
-                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20'
-                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800/60'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{tab.label}</span>
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-1 transition-all ${
-                    isActive ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 transition-all ${
+                    isActive 
+                      ? 'bg-white/20 text-white' 
+                      : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
                   }`}>
                     {tab.count}
                   </span>
@@ -277,61 +284,50 @@ export default function Dashboard() {
           })}
         </div>
 
+        {/* Active Tab Content Wrapper */}
+        <div className="space-y-6">
+
         {/* Home Tab */}
         {activeTab === 'home' && (
-          <div className="animate-custom-fade-in space-y-8">
-            {/* Welcome */}
-            <div className="mb-4">
-              <p className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold mb-1">Good day 👋</p>
-              <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
-                Welcome back,{' '}
-                <span className="bg-gradient-to-r from-indigo-600 to-amber-500 bg-clip-text text-transparent">
-                  {loading ? '…' : displayName}
-                </span>
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-lg">How can ArogyaBot help you today?</p>
-            </div>
+          <div className="animate-tab-fade-in space-y-8">
+            {/* Hero Welcome Banner */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              {/* Background decorative glows */}
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
 
-            {/* Start Chat Card */}
-            <div
-              className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-indigo-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-lg transition-all duration-300 cursor-pointer group shadow-sm"
-              onClick={startNewChat}
-              id="dashboard-new-chat-card"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
-                    <Plus className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Start New Conversation</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Describe your symptoms in English or हिंदी</p>
-                  </div>
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <p className="text-indigo-100 text-sm font-semibold mb-1.5 tracking-wider uppercase">Good day 👋</p>
+                  <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-3">
+                    Welcome back,<br />
+                    <span className="text-white drop-shadow-sm">{loading ? '…' : displayName}</span>
+                  </h1>
+                  <p className="text-indigo-50 text-sm md:text-base max-w-md leading-relaxed">
+                    ArogyaBot is here to provide support and information regarding symptoms, diseases, vaccines, and local care finder tools.
+                  </p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-indigo-400 group-hover:translate-x-1.5 transition-transform duration-200 hidden sm:block" />
+                <button
+                  onClick={startNewChat}
+                  className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-indigo-50 active:bg-white text-indigo-600 font-extrabold rounded-2xl shadow-lg hover:scale-102 active:scale-98 transition-all duration-200 self-start md:self-auto"
+                >
+                  <MessageCircle className="w-5 h-5 fill-indigo-600" />
+                  Start Chat
+                </button>
               </div>
             </div>
 
-            <div className="flex justify-start">
-              <button
-                id="dashboard-quick-start-btn"
-                onClick={startNewChat}
-                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-base font-semibold px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 shadow-md hover:scale-102 hover:shadow-lg"
-              >
-                <MessageCircle className="w-5 h-5" /> New Chat
-              </button>
-            </div>
-
             {/* Short Tips Grid */}
-            <div className="pt-6 border-t border-indigo-50 dark:border-slate-800">
+            <div className="pt-6 border-t border-indigo-50 dark:border-slate-800/80 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
               <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
                 Tips for better results
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {tips.map((t) => (
+                {tips.map((t, idx) => (
                   <div
                     key={t.label}
-                    className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 shadow-sm"
+                    className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-100/60 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 shadow-sm animate-card-fade-in opacity-0"
+                    style={{ animationDelay: `${100 + idx * 50}ms` }}
                   >
                     <t.icon className="w-5 h-5 text-indigo-500 dark:text-indigo-400 mb-3" />
                     <p className="text-slate-900 dark:text-white font-bold text-sm mb-1">{t.label}</p>
@@ -345,7 +341,7 @@ export default function Dashboard() {
 
         {/* Recent Chats Tab */}
         {activeTab === 'chats' && (
-          <div className="animate-custom-fade-in space-y-6">
+          <div className="animate-tab-fade-in space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Medical Conversations</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Access your previous sessions and medical guidance from ArogyaBot.</p>
@@ -361,7 +357,7 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : sessions.length === 0 ? (
-              <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-indigo-100 dark:border-slate-700 text-center py-12 shadow-sm">
+              <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-indigo-100 dark:border-slate-700 text-center py-12 shadow-sm animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
                 <div className="w-16 h-16 bg-indigo-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="w-8 h-8 text-indigo-500 dark:text-indigo-400" />
                 </div>
@@ -378,7 +374,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {sessions.map((session) => {
+                {sessions.map((session, idx) => {
                   console.log('Session object:', session)
                   const sId = session.id
                   const rawTitle = session.firstMessage || session.title || session.message || "Untitled Chat"
@@ -389,12 +385,18 @@ export default function Dashboard() {
                     <div
                       key={sId}
                       onClick={() => navigate(`/chat/${sId}`)}
-                      className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between h-28 shadow-sm group"
+                      className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-100 dark:border-slate-700 border-l-4 border-l-indigo-500 dark:border-l-indigo-500 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[120px] shadow-sm group hover:-translate-y-0.5 animate-card-fade-in opacity-0"
+                      style={{ animationDelay: `${idx * 50}ms` }}
                     >
-                      <div className="flex justify-between items-start gap-2">
-                        <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                          {title}
-                        </p>
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-slate-850 dark:text-slate-100 font-bold text-sm leading-snug line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                            {title}
+                          </p>
+                          <p className="text-slate-450 dark:text-slate-450 text-xs mt-1.5 line-clamp-2 leading-relaxed">
+                            {session.firstMessage || session.title || "No preview available"}
+                          </p>
+                        </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={(e) => {
@@ -410,15 +412,17 @@ export default function Dashboard() {
                           <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform duration-200" />
                         </div>
                       </div>
-                      <span className="text-slate-400 dark:text-slate-500 text-xs mt-2 font-medium">
-                        {time}
-                      </span>
+                      <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-slate-50 dark:border-slate-800/40">
+                        <span className="text-slate-400 dark:text-slate-500 text-[10px] font-semibold">
+                          {time}
+                        </span>
+                      </div>
                     </div>
                   )
                 })}
               </div>
             )}
-            <div className="pt-6">
+            <div className="pt-6 animate-card-fade-in opacity-0" style={{ animationDelay: `${sessions.length * 50 + 50}ms` }}>
               <EmergencyNumbers />
             </div>
           </div>
@@ -480,25 +484,41 @@ export default function Dashboard() {
 
         {/* Health Tools Tab */}
         {activeTab === 'tools' && (
-          <div className="animate-custom-fade-in space-y-6">
+          <div className="animate-tab-fade-in space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Health Tools</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Calculate your health metrics and get general suggestions.</p>
             </div>
             
-            <BMICalculator />
+            <div className="animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              <BMICalculator />
+            </div>
+          </div>
+        )}
+
+        {/* Care Finder Tab */}
+        {activeTab === 'care' && (
+          <div className="animate-tab-fade-in space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Care Finder</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">Locate nearby medical centers using your device location or search by city.</p>
+            </div>
+            
+            <div className="animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              <HospitalFinder />
+            </div>
           </div>
         )}
 
         {/* Profile Settings Tab */}
         {activeTab === 'profile' && (
-          <div className="animate-custom-fade-in space-y-6">
+          <div className="animate-tab-fade-in space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Profile Settings</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Customize how ArogyaBot addresses you.</p>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-8 shadow-sm max-w-xl">
+            <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-8 shadow-sm max-w-xl animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
               {saveMessage && (
                 <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm mb-6 ${
                   saveSuccess 
@@ -567,7 +587,8 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </main>
+  </div>
   )
 }

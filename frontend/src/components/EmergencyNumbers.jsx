@@ -46,17 +46,17 @@ export default function EmergencyNumbers() {
         {emergencyContacts.map((contact) => (
           <div
             key={contact.number}
-            className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-rose-100/50 dark:border-slate-700/40 hover:border-rose-300 dark:hover:border-rose-500 transition-all duration-200"
+            className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-rose-100/50 dark:border-slate-700/40 hover:border-rose-300 dark:hover:border-rose-500 hover:shadow-lg hover:shadow-rose-500/5 transition-all duration-200"
           >
             <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center shrink-0 mt-0.5">
               <Phone className="w-4 h-4 text-rose-500 dark:text-rose-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline justify-between flex-wrap gap-x-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{contact.name}</span>
+              <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1.5">
+                <span className="font-bold text-slate-850 dark:text-slate-200 text-sm">{contact.name}</span>
                 <a
                   href={`tel:${contact.number}`}
-                  className="font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 text-base hover:underline select-all transition-colors"
+                  className="inline-flex items-center justify-center font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/20 px-3 py-1 rounded-full text-sm border border-rose-250/30 dark:border-rose-900/30 hover:underline select-all transition-all duration-200"
                 >
                   {contact.number}
                 </a>
