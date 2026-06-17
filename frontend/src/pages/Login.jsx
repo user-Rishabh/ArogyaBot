@@ -32,7 +32,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 flex items-center justify-center px-4 py-12 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-indigo-100 to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 flex items-center justify-center px-4 py-12 relative overflow-hidden transition-colors duration-300">
       {/* Theme toggle — top right */}
       <button
         onClick={toggleTheme}
@@ -43,8 +43,10 @@ export default function Login() {
       </button>
 
       {/* Background blobs */}
-      <div className="absolute top-[-60px] left-[-60px] w-80 h-80 bg-indigo-300 dark:bg-indigo-700 rounded-full blur-3xl opacity-30 z-0 animate-blob-float" />
-      <div className="absolute bottom-[-40px] right-[-40px] w-72 h-72 bg-amber-200 dark:bg-amber-700 rounded-full blur-3xl opacity-30 z-0 animate-blob-float animation-delay-2000" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-10 -left-10 w-96 h-96 bg-indigo-400 dark:bg-indigo-700 rounded-full blur-3xl opacity-40 z-0 animate-blob-float" />
+        <div className="absolute -top-10 -right-10 w-96 h-96 bg-amber-300 dark:bg-amber-700 rounded-full blur-3xl opacity-40 z-0 animate-blob-float animation-delay-2000" />
+      </div>
 
       <div className="relative z-10 w-full max-w-md animate-custom-slide-up">
         {/* Logo */}
@@ -52,8 +54,10 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-700 mb-4 shadow-sm">
             <HeartPulse className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Welcome back</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Sign in to your ArogyaBot account</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
+            Welcome to <span className="bg-gradient-to-r from-indigo-600 to-amber-500 bg-clip-text text-transparent">ArogyaBot</span>
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Sign in to your account</p>
         </div>
 
         {/* Demo Banner */}
@@ -69,7 +73,7 @@ export default function Login() {
                 id="login-demo-btn"
                 type="button"
                 onClick={handleDemo}
-                className="inline-flex items-center justify-center gap-2 w-full min-h-[44px] text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 hover:scale-105 shadow-sm"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm hover:scale-105 transition-all duration-300 inline-flex items-center justify-center gap-2 w-full min-h-[44px] text-sm"
               >
                 <Zap className="w-4 h-4" /> Launch Demo Mode
               </button>
@@ -112,7 +116,7 @@ export default function Login() {
             </div>
             <button
               id="login-submit-btn" type="submit" disabled={loading}
-              className="inline-flex items-center justify-center w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm hover:scale-105 transition-all duration-300 inline-flex items-center justify-center w-full py-3.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (
                 <span className="flex items-center gap-2 justify-center">

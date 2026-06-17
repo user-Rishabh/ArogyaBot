@@ -147,7 +147,7 @@ function Bubble({ msg }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 animate-slide-up`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mr-2.5 shrink-0 mt-1 shadow-md shadow-indigo-500/20">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center mr-2.5 shrink-0 mt-1 shadow-md shadow-indigo-500/20">
           <HeartPulse className="w-4 h-4 text-white" />
         </div>
       )}
@@ -168,7 +168,7 @@ function Bubble({ msg }) {
 function TypingDots() {
   return (
     <div className="flex justify-start mb-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mr-2.5 shrink-0 shadow-md shadow-indigo-500/20">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center mr-2.5 shrink-0 shadow-md shadow-indigo-500/20">
         <HeartPulse className="w-4 h-4 text-white" />
       </div>
       <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-4 py-3.5 rounded-2xl rounded-bl-sm flex items-center gap-1.5 transition-colors duration-300">
@@ -386,7 +386,7 @@ setMessages(prev => [...prev, {
   return (
     <div className="h-screen h-[100dvh] flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300 overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 border-b border-slate-100 dark:border-slate-700/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-10 transition-colors duration-300">
+      <header className="shrink-0 border-b border-indigo-100/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-10 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
           <button
             id="chat-back-btn"
@@ -398,7 +398,7 @@ setMessages(prev => [...prev, {
           </button>
 
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center shadow-sm">
               <HeartPulse className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -454,7 +454,7 @@ setMessages(prev => [...prev, {
           {/* Empty state */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-64 text-center animate-fade-in">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mb-5 shadow-xl shadow-indigo-500/20">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center mb-5 shadow-xl shadow-indigo-500/20">
                 <HeartPulse className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
