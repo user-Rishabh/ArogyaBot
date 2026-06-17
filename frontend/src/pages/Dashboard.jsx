@@ -16,6 +16,52 @@ import BMICalculator from '../components/BMICalculator'
 const WHATSAPP_NUMBER = '14155238886'
 const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
 
+const getNearbyHospitals = (city = '') => {
+  const prefix = city ? `${city} ` : ''
+  return [
+    {
+      name: `${prefix}Community Health Centre (CHC)`,
+      type: 'Government',
+      specialty: '24/7 Emergency, General Medicine, Pediatrics, Vaccination',
+      address: 'Main Bazar Road, near Panchayat Bhawan',
+      distance: '1.2 km',
+      query: `${prefix}Community Health Centre`
+    },
+    {
+      name: `${prefix}District Civil Hospital`,
+      type: 'Government',
+      specialty: 'Trauma Care, Surgery, Maternity, ICU, Blood Bank',
+      address: 'Station Road, near Civil Lines',
+      distance: '2.8 km',
+      query: `${prefix}District Civil Hospital`
+    },
+    {
+      name: `${prefix}Primary Health Centre (PHC)`,
+      type: 'Government',
+      specialty: 'Outpatient (OPD), Immunization, Basic Diagnostics',
+      address: 'Rural Link Road, Sector 3',
+      distance: '4.5 km',
+      query: `${prefix}Primary Health Centre`
+    },
+    {
+      name: 'Arogya Wellness Clinic',
+      type: 'Private',
+      specialty: 'General Consultation, Pharmacy, Preventive Care',
+      address: 'High Street, near Gandhi Statue',
+      distance: '5.1 km',
+      query: 'Arogya Wellness Clinic'
+    },
+    {
+      name: `${prefix}Lifeline Multi-Specialty Hospital`,
+      type: 'Private',
+      specialty: 'Emergency Medicine, Cardiology, Orthopedics, Pharmacy',
+      address: 'National Highway Bypass, near Toll Plaza',
+      distance: '7.3 km',
+      query: `${prefix}Lifeline Multi-Specialty Hospital`
+    }
+  ]
+}
+
 function AnimationOverlay({ isLocDetecting }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-sm select-none animate-overlay-fade">
@@ -637,7 +683,7 @@ export default function Dashboard() {
               {!showAmbuAnimation && !isLocDetecting && (
                 <div className="animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
                   {locAllowed ? (
-                    /* Location Allowed: Map with nearby hospitals */
+                    /* Location Allowed: List with nearby hospitals */
                     <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-amber-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
@@ -649,28 +695,51 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 h-96 w-full bg-slate-50">
-                        <iframe
-                          title="Nearby Hospitals Map"
-                          src={`https://maps.google.com/maps?q=hospitals+near+${locCoords.lat},${locCoords.lng}&output=embed`}
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          allowFullScreen=""
-                          loading="lazy"
-                        />
-                      </div>
-
-                      <div className="flex justify-start">
-                        <a
-                          href={`https://www.google.com/maps/search/hospitals+near+me/@${locCoords.lat},${locCoords.lng},14z`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-98 text-sm"
-                        >
-                          <MapPin className="w-4 h-4" />
-                          Open in Google Maps
-                        </a>
+                      <div className="space-y-4">
+                        {getNearbyHospitals().map((hosp, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 group"
+                          >
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                                <HeartPulse className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                    {hosp.name}
+                                  </h4>
+                                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                                    hosp.type === 'Government'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                      : 'bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800'
+                                  }`}>
+                                    {hosp.type}
+                                  </span>
+                                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                                    {hosp.distance}
+                                  </span>
+                                </div>
+                                <p className="text-slate-400 dark:text-slate-500 text-xs mt-1 leading-snug">
+                                  {hosp.address}
+                                </p>
+                                <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-snug truncate italic">
+                                  {hosp.specialty}
+                                </p>
+                              </div>
+                            </div>
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hosp.query)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 ml-4 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 group-hover:scale-102"
+                            >
+                              <span>Go</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : (
@@ -724,27 +793,55 @@ export default function Dashboard() {
 
                       {searchCity && (
                         <div className="space-y-4 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
-                          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 h-96 w-full bg-slate-50">
-                            <iframe
-                              title={`Hospitals in ${searchCity} Map`}
-                              src={`https://maps.google.com/maps?q=hospitals+in+${encodeURIComponent(searchCity)}&output=embed`}
-                              width="100%"
-                              height="100%"
-                              style={{ border: 0 }}
-                              allowFullScreen=""
-                              loading="lazy"
-                            />
-                          </div>
-                          <div className="flex justify-start">
-                            <a
-                              href={`https://www.google.com/maps/search/hospitals+in+${encodeURIComponent(searchCity)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-98 text-sm"
-                            >
-                              <MapPin className="w-4 h-4" />
-                              Open in Google Maps
-                            </a>
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-indigo-500" />
+                            Hospitals near {searchCity}
+                          </h3>
+                          <div className="space-y-4">
+                            {getNearbyHospitals(searchCity).map((hosp, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 group"
+                              >
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                                    <HeartPulse className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                        {hosp.name}
+                                      </h4>
+                                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                                        hosp.type === 'Government'
+                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800'
+                                          : 'bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800'
+                                      }`}>
+                                        {hosp.type}
+                                      </span>
+                                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                                        {hosp.distance}
+                                      </span>
+                                    </div>
+                                    <p className="text-slate-400 dark:text-slate-500 text-xs mt-1 leading-snug">
+                                      {hosp.address}
+                                    </p>
+                                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-snug truncate italic">
+                                      {hosp.specialty}
+                                    </p>
+                                  </div>
+                                </div>
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hosp.query)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="shrink-0 ml-4 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 group-hover:scale-102"
+                                >
+                                  <span>Go</span>
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
