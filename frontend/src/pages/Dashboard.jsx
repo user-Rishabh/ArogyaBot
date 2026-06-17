@@ -133,6 +133,7 @@ export default function Dashboard() {
   const handleDeleteSession = async (sessionId) => {
     if (!window.confirm('Delete this chat?')) return
     
+    console.log('Attempting to delete session:', sessionId, 'for user:', user?.id)
     // Delete from Supabase first
     const { error } = await supabase
       .from('chat_sessions')
@@ -375,7 +376,8 @@ export default function Dashboard() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {sessions.map((session) => {
-                  const sId = session.sessionId || session.id
+                  console.log('Session object:', session)
+                  const sId = session.id
                   const rawTitle = session.firstMessage || session.title || session.message || "Untitled Chat"
                   const title = rawTitle.length > 60 ? rawTitle.substring(0, 60) + "..." : rawTitle
                   const time = getRelativeTime(session.createdAt || session.created_at)
