@@ -73,7 +73,7 @@ export default function HospitalFinder() {
           <button
             onClick={findNearbyHospitals}
             disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-450 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-98 text-sm"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-98 text-sm"
           >
             {loading ? (
               <>
@@ -89,14 +89,14 @@ export default function HospitalFinder() {
           </button>
 
           {error && (
-            <p className="text-red-650 dark:text-red-400 text-xs font-semibold mt-4 animate-fade-in">
+            <p className="text-red-600 dark:text-red-400 text-xs font-semibold mt-4 animate-fade-in">
               ⚠️ {error}
             </p>
           )}
         </div>
 
         {/* Manual City Search Fallback */}
-        <div className="p-6 border border-slate-150/60 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center">
+        <div className="p-6 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center">
           <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
             <Search className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
             Manual City Search

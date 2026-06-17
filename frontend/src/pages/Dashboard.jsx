@@ -17,6 +17,30 @@ import HospitalFinder from '../components/HospitalFinder'
 const WHATSAPP_NUMBER = '14155238886'
 const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
 
+function AnimationOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-sm select-none animate-overlay-fade">
+      <div className="relative flex items-center justify-center h-48 w-48">
+        {/* Siren Red Glow */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-red-600/30 blur-2xl animate-siren-red pointer-events-none" />
+        {/* Siren Blue Glow */}
+        <div className="absolute top-1/4 right-1/4 w-32 h-32 rounded-full bg-blue-600/30 blur-2xl animate-siren-blue pointer-events-none" />
+        
+        {/* Ambulance Emoji */}
+        <div className="text-8xl animate-ambulance-drive select-none z-10">
+          🚑
+        </div>
+      </div>
+      <p 
+        className="text-white text-lg font-extrabold tracking-wide mt-4 animate-text-fade-in opacity-0"
+        style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}
+      >
+        Finding care near you...
+      </p>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
@@ -25,6 +49,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [sessions, setSessions] = useState([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [showAmbuAnimation, setShowAmbuAnimation] = useState(false)
 
   // Tabs and profile settings state
   const [activeTab, setActiveTab] = useState('home') // 'home', 'chats', 'tips', 'profile'
@@ -192,6 +217,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 transition-colors duration-300">
+      {showAmbuAnimation && <AnimationOverlay />}
       {/* Navbar */}
       <nav className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-indigo-100/60 dark:border-slate-700/60 shadow-sm transition-colors duration-300">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -259,6 +285,10 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => {
+                  if (tab.id === 'care' && activeTab !== 'care') {
+                    setShowAmbuAnimation(true)
+                    setTimeout(() => setShowAmbuAnimation(false), 2000)
+                  }
                   setActiveTab(tab.id)
                   setSaveMessage('')
                 }}
@@ -390,10 +420,10 @@ export default function Dashboard() {
                     >
                       <div className="flex justify-between items-start gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="text-slate-850 dark:text-slate-100 font-bold text-sm leading-snug line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          <p className="text-slate-800 dark:text-slate-100 font-bold text-sm leading-snug line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             {title}
                           </p>
-                          <p className="text-slate-450 dark:text-slate-450 text-xs mt-1.5 line-clamp-2 leading-relaxed">
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1.5 line-clamp-2 leading-relaxed">
                             {session.firstMessage || session.title || "No preview available"}
                           </p>
                         </div>

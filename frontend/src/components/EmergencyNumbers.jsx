@@ -53,10 +53,10 @@ export default function EmergencyNumbers() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1.5">
-                <span className="font-bold text-slate-850 dark:text-slate-200 text-sm">{contact.name}</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{contact.name}</span>
                 <a
                   href={`tel:${contact.number}`}
-                  className="inline-flex items-center justify-center font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/20 px-3 py-1 rounded-full text-sm border border-rose-250/30 dark:border-rose-900/30 hover:underline select-all transition-all duration-200"
+                  className="inline-flex items-center justify-center font-extrabold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/20 px-3 py-1 rounded-full text-sm border border-rose-200/30 dark:border-rose-900/30 hover:underline select-all transition-all duration-200"
                 >
                   {contact.number}
                 </a>

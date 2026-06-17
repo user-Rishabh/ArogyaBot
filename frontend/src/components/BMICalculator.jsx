@@ -254,7 +254,7 @@ export default function BMICalculator() {
               <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl flex gap-3">
                 <Sparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-850 dark:text-white mb-1">Health Suggestion</h4>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-1">Health Suggestion</h4>
                   <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                     {getCategoryTip(category)}
                   </p>
@@ -263,8 +263,8 @@ export default function BMICalculator() {
             </div>
           ) : (
             <div className="text-center py-8 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center">
-              <Info className="w-8 h-8 text-slate-350 dark:text-slate-500 mb-3" />
-              <p className="text-slate-550 dark:text-slate-400 text-sm max-w-[240px] leading-relaxed">
+              <Info className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-3" />
+              <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[240px] leading-relaxed">
                 Enter your height and weight, then click **Calculate BMI** to view results.
               </p>
             </div>
@@ -354,7 +354,7 @@ export default function BMICalculator() {
               {healthTips.map((tip, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-2.5 p-2 bg-white dark:bg-slate-850 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 animate-custom-slide-up opacity-0"
+                  className="flex items-start gap-2.5 p-2 bg-white dark:bg-surface-850 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 animate-custom-slide-up opacity-0"
                   style={{ animationDelay: `${300 + idx * 100}ms` }}
                 >
                   <span className="text-sm shrink-0" role="img" aria-label="Tip Icon">{tip.emoji}</span>
