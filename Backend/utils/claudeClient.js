@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 
 const modelName = 'gemini-3.5-flash'
 const model = genAI.getGenerativeModel({
-  model: modelName
+  model: 'gemini-1.5-flash-8b'
 })
 // Build system prompt with health data context
 const buildSystemPrompt = () => {
