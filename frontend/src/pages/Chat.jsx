@@ -33,6 +33,42 @@ RULES:
 }
 
 const getGeminiResponse = async (userMessage, chatHistory = [], language = 'en') => {
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY
+  if (openRouterKey) {
+    const model = import.meta.env.VITE_OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'
+    console.log(`Attempting OpenRouter generation with model: ${model}`)
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: model,
+          messages: [
+            { role: 'system', content: buildSystemPrompt() },
+            ...chatHistory.map(msg => ({
+              role: msg.role === 'user' ? 'user' : 'assistant',
+              content: msg.content
+            })),
+            { role: 'user', content: userMessage }
+          ]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${openRouterKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      const replyText = response.data?.choices?.[0]?.message?.content
+      if (replyText) {
+        console.log(`Success with OpenRouter model: ${model}`)
+        return replyText
+      }
+    } catch (err) {
+      console.warn('OpenRouter generation failed, falling back to Gemini:', err.response?.data || err.message)
+    }
+  }
+
   const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
   if (!apiKey) {
     throw new Error('Gemini API key is not configured.')

@@ -29,6 +29,46 @@ RULES:
 
 // Main function to call Claude
 const getChatResponse = async (userMessage, chatHistory = []) => {
+  const openRouterKey = process.env.OPENROUTER_API_KEY
+  if (openRouterKey) {
+    const model = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'
+    console.log(`Attempting backend OpenRouter generation with model: ${model}`)
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openRouterKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: buildSystemPrompt() },
+            ...chatHistory.map(msg => ({
+              role: msg.role === 'user' ? 'user' : 'assistant',
+              content: msg.content
+            })),
+            { role: 'user', content: userMessage }
+          ]
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const text = data?.choices?.[0]?.message?.content
+        if (text) {
+          console.log(`Backend OpenRouter success with model: ${model}`)
+          return text
+        }
+      } else {
+        const errText = await response.text()
+        console.warn(`Backend OpenRouter API error response: ${response.status} ${errText}`)
+      }
+    } catch (err) {
+      console.warn('Backend OpenRouter generation failed, falling back to Gemini:', err.message)
+    }
+  }
+
   const messages = chatHistory.map(msg => ({
     role: msg.role,
     content: msg.content
