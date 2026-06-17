@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Login() {
-  const { login, loginAsDemo } = useAuth()
+  const { login, loginAsDemo, googleLogin } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -16,6 +16,14 @@ export default function Login() {
   const [loading,  setLoading]  = useState(false)
 
   function handleDemo() { loginAsDemo(); navigate('/dashboard') }
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin()
+    } catch (err) {
+      setError(err.message || 'Google login failed')
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -60,26 +68,6 @@ export default function Login() {
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Sign in to your account</p>
         </div>
 
-        {/* Demo Banner */}
-        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-5 mb-4 shadow-sm transition-colors duration-300">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5">Try without signing up</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Explore all features instantly — no account required.</p>
-              <button
-                id="login-demo-btn"
-                type="button"
-                onClick={handleDemo}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm hover:scale-105 transition-all duration-300 inline-flex items-center justify-center gap-2 w-full min-h-[44px] text-sm"
-              >
-                <Zap className="w-4 h-4" /> Launch Demo Mode
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Login Card */}
         <div className="bg-white dark:bg-slate-800 shadow-xl rounded-2xl p-8 border border-indigo-50 dark:border-slate-700 transition-colors duration-300">
@@ -88,6 +76,18 @@ export default function Login() {
               <AlertCircle className="w-4 h-4 shrink-0" /> {error}
             </div>
           )}
+
+          <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <span className="text-xs text-slate-400 font-medium">OR</span>
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+          </div>
+
           <form id="login-form" onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email address</label>

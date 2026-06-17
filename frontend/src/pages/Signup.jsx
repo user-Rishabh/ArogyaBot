@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Signup() {
-  const { signup } = useAuth()
+  const { signup, googleLogin } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -30,6 +30,14 @@ export default function Signup() {
       setError(err.message || 'Signup failed. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin()
+    } catch (err) {
+      setError(err.message || 'Google signup failed')
     }
   }
 
@@ -69,6 +77,18 @@ export default function Signup() {
               <AlertCircle className="w-4 h-4 shrink-0" /> {error}
             </div>
           )}
+
+          <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <span className="text-xs text-slate-400 font-medium">OR</span>
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+          </div>
+
           <form id="signup-form" onSubmit={handleSubmit} className="space-y-5">
             {[
               { id: 'signup-name',    label: 'Full name',        type: 'text',     Icon: User, placeholder: 'Priya Sharma',        val: name,     set: setName },
