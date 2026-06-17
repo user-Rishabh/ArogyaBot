@@ -1,13 +1,12 @@
-
 const { GoogleGenerativeAI } = require('@google/generative-ai')
 const healthData = require('../data/healthData.json')
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 
 const model = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash'
 })
-// Build system prompt with health data context
+
 const buildSystemPrompt = () => {
   const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
   const vaccineNames = healthData.vaccines.map(v => v.name).join(', ')
@@ -27,7 +26,6 @@ RULES:
 7. Be warm and supportive in tone.`
 }
 
-// Main function to call Claude
 const getChatResponse = async (userMessage, chatHistory = []) => {
   const messages = chatHistory.map(msg => ({
     role: msg.role,
@@ -39,16 +37,15 @@ const getChatResponse = async (userMessage, chatHistory = []) => {
     content: userMessage
   })
 
- const prompt = `
+  const prompt = `
 ${buildSystemPrompt()}
 
 Conversation:
 ${messages.map(m => `${m.role}: ${m.content}`).join('\n')}
 `
 
-const result = await model.generateContent(prompt)
-
-return result.response.text()
+  const result = await model.generateContent(prompt)
+  return result.response.text()
 }
 
-module.exports = { getChatResponse, modelName }
+module.exports = { getChatResponse }
