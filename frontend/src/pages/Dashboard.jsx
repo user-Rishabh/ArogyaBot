@@ -191,6 +191,30 @@ export default function Dashboard() {
     setSessions(prev => prev.filter(s => s.id !== sessionId))
   }
 
+  const handleClearAllSessions = async () => {
+    if (!window.confirm('Are you sure you want to delete all chat history? This cannot be undone.')) return
+
+    console.log('Attempting to clear all sessions for user:', user?.id)
+    try {
+      if (user?.isDemo) {
+        setSessions([])
+        return
+      }
+
+      const { error } = await supabase
+        .from('chat_sessions')
+        .delete()
+        .eq('user_id', user.id)
+
+      if (error) throw error
+
+      setSessions([])
+    } catch (err) {
+      console.error('Clear all sessions error:', err)
+      alert('Failed to clear all chats. Try again.')
+    }
+  }
+
   async function handleSaveProfile(e) {
     e.preventDefault()
     if (!user?.id) return
@@ -430,9 +454,21 @@ export default function Dashboard() {
           {/* Recent Chats Tab */}
           {activeTab === 'chats' && (
             <div className="animate-tab-fade-in space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Medical Conversations</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm">Access your previous sessions and medical guidance from ArogyaBot.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Medical Conversations</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">Access your previous sessions and medical guidance from ArogyaBot.</p>
+                </div>
+                {sessions.length > 0 && (
+                  <button
+                    id="clear-all-chats-btn"
+                    onClick={handleClearAllSessions}
+                    className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-bold text-sm rounded-xl transition-all duration-200"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Clear All Chats
+                  </button>
+                )}
               </div>
 
               {sessionsLoading ? (
