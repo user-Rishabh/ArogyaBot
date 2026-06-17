@@ -203,5 +203,36 @@
   animation: overlayFade 2s ease-in-out forwards;
 }
 
+/* Custom styles for Medicine Interaction Checker loading and progress state */
+@keyframes pillSpin {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(180deg); }
+  100% { transform: translateY(0px) rotate(360deg); }
+}
+
+.animate-pill-spin {
+  animation: pillSpin 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.2; filter: blur(24px); }
+  50% { transform: scale(1.25); opacity: 0.45; filter: blur(36px); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+
+.animate-scan-line {
+  animation: scanLine 3s ease-in-out infinite;
+}
+
+
 
 

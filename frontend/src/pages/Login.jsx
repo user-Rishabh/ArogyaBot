@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { HeartPulse, Mail, Lock, Eye, EyeOff, AlertCircle, Zap, Sun, Moon } from 'lucide-react'
+import { HeartPulse, Mail, Lock, Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Login() {
-  const { login, loginAsDemo, googleLogin } = useAuth()
+  const { login, googleLogin } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -14,8 +14,6 @@ export default function Login() {
   const [showPwd,  setShowPwd]  = useState(false)
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
-
-  function handleDemo() { loginAsDemo(); navigate('/dashboard') }
 
   const handleGoogleLogin = async () => {
     try {

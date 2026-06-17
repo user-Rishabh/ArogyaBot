@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
@@ -20,8 +21,10 @@ export function AuthProvider({ children }) {
     // Restore demo session from localStorage first
     const demoActive = localStorage.getItem(DEMO_KEY) === 'true'
     if (demoActive) {
-      setUser(DEMO_USER)
-      setLoading(false)
+      setTimeout(() => {
+        setUser(DEMO_USER)
+        setLoading(false)
+      }, 0)
       return
     }
 

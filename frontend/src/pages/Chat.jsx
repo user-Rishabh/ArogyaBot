@@ -11,8 +11,6 @@ import { useSpeech } from '../hooks/useSpeech'
 import { supabase } from '../lib/supabase'
 import healthData from '../data/healthData.json'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
 const buildSystemPrompt = () => {
   const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
   const vaccineNames = healthData.vaccines.map(v => v.name).join(', ')
@@ -32,7 +30,7 @@ RULES:
 7. Be warm and supportive in tone.`
 }
 
-const getGeminiResponse = async (userMessage, chatHistory = [], language = 'en') => {
+const getGeminiResponse = async (userMessage, chatHistory = []) => {
   const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY
   if (openRouterKey) {
     const model = import.meta.env.VITE_OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'
@@ -242,7 +240,11 @@ export default function Chat() {
 
   /* Sync speech transcript → input */
   useEffect(() => {
-    if (transcript) setInput(transcript)
+    if (transcript) {
+      setTimeout(() => {
+        setInput(transcript)
+      }, 0)
+    }
   }, [transcript])
 
   /* Auto-scroll */
@@ -365,7 +367,7 @@ export default function Chat() {
         }
 
         // Call Gemini directly from the frontend (with cascade fallback logic)
-        reply = await getGeminiResponse(text, buildHistory(updatedMessages), language)
+        reply = await getGeminiResponse(text, buildHistory(updatedMessages))
 
         // Store messages directly in Supabase (non-blocking)
         if (activeSessionId) {

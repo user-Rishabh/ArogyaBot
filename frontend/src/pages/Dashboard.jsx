@@ -4,7 +4,8 @@ import {
   HeartPulse, MessageCircle, Plus, LogOut,
   User, Sparkles, Clock, ChevronRight, Sun, Moon,
   Mail, AlertCircle, CheckCircle, Info, Trash2,
-  Activity, MapPin, Search, Loader2
+  Activity, MapPin, Search, Loader2, Pill, FlaskConical,
+  AlertTriangle, ShieldAlert
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
@@ -117,6 +118,151 @@ export default function Dashboard() {
   const [manualCity, setManualCity] = useState('')
   const [searchCity, setSearchCity] = useState('')
 
+  // Medicine Suggester states
+  const [symptoms, setSymptoms] = useState('')
+  const [medSystem, setMedSystem] = useState('Allopathy')
+  const [userAge, setUserAge] = useState('')
+  const [suggestionsResult, setSuggestionsResult] = useState(null)
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [suggestionsProgress, setSuggestionsProgress] = useState('')
+  const [suggestionsError, setSuggestionsError] = useState('')
+
+  const handleGetSuggestions = async () => {
+    if (!symptoms.trim()) {
+      setSuggestionsError('Please enter your symptoms.')
+      return
+    }
+    if (!userAge || isNaN(userAge) || parseInt(userAge) <= 0) {
+      setSuggestionsError('Please enter a valid age.')
+      return
+    }
+
+    setSuggestionsLoading(true)
+    setSuggestionsError('')
+    setSuggestionsResult(null)
+
+    const steps = [
+      '🧪 Analyzing symptoms and age profile...',
+      '🔍 Accessing selected medical system knowledge...',
+      '⚠️ Reviewing contraindications and safety guidelines...',
+      '🍽️ Formulating dietary advice & dosage levels...',
+      '✨ Compiling personal medicine suggestions...'
+    ]
+    
+    let stepIndex = 0
+    setSuggestionsProgress(steps[0])
+    const progressInterval = setInterval(() => {
+      if (stepIndex < steps.length - 1) {
+        stepIndex++
+        setSuggestionsProgress(steps[stepIndex])
+      }
+    }, 1500)
+
+    try {
+      const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+      const response = await axios.post(`${apiURL}/suggest-medicines`, {
+        symptoms,
+        system: medSystem,
+        age: parseInt(userAge)
+      })
+      setSuggestionsResult(response.data)
+    } catch (backendError) {
+      console.warn('Backend suggestions failed or unavailable, falling back to frontend direct call:', backendError)
+      
+      try {
+        const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
+        if (!apiKey) {
+          throw new Error('API keys are not configured. Please start backend server or configure VITE_GOOGLE_API_KEY.', { cause: backendError })
+        }
+
+        const systemPrompt = `You are an expert medical consultant, wellness advisor, and pharmacist AI assistant.
+Given the user's symptoms, age, and preferred system of medicine (Ayurvedic, Allopathy, or Homeopathy), perform a safe clinical evaluation and suggest remedies.
+Your response MUST be a valid JSON object matching the schema below.
+Provide realistic, common suggestions suitable for the user's age.
+Always include appropriate safety disclaimers, especially for children (under 12) or elderly users.
+Do not include any markdown formatting like \`\`\`json or \`\`\`, just return the raw JSON text.
+
+JSON Schema:
+{
+  "system": "Ayurvedic" | "Allopathy" | "Homeopathy",
+  "ageGroup": "Pediatric" | "Adult" | "Geriatric",
+  "summary": "Overall guidance for these symptoms in this age group under the chosen system.",
+  "suggestions": [
+    {
+      "medicine": "Medicine/Remedy Name",
+      "purpose": "What this medicine helps with in relation to the symptoms.",
+      "dosage": "Typical dosage instructions tailored specifically to their age (e.g. For a 5-year-old: 2.5ml syrup... or For a 30-year-old: 1 tablet...).",
+      "timing": "E.g., Take twice daily, in morning and evening after food."
+    }
+  ],
+  "warnings": [
+    "Safety warning or precaution (e.g., Avoid if you have high blood pressure, consult doctor immediately if symptoms worsen, etc.)"
+  ]
+}`
+
+        const promptText = `${systemPrompt}\n\nUser Input Details:\nSymptoms: ${symptoms}\nPreferred System: ${medSystem}\nUser Age: ${userAge}`
+        
+        const modelsToTry = [
+          'gemini-3.5-flash',
+          'gemini-2.5-flash',
+          'gemini-3.1-flash-lite',
+          'gemini-2.5-flash-lite'
+        ]
+        
+        let success = false
+        let lastError = null
+
+        for (const currentModelName of modelsToTry) {
+          try {
+            console.log(`Fallback: Attempting direct frontend suggestion check with model: ${currentModelName}`)
+            const fallbackResponse = await axios.post(
+              `https://generativelanguage.googleapis.com/v1beta/models/${currentModelName}:generateContent?key=${apiKey}`,
+              {
+                contents: [
+                  {
+                    parts: [
+                      {
+                        text: promptText
+                      }
+                    ]
+                  }
+                ]
+              }
+            )
+
+            const candidate = fallbackResponse.data?.candidates?.[0]
+            const replyText = candidate?.content?.parts?.[0]?.text
+            if (replyText) {
+              let cleanJsonStr = replyText.trim()
+              if (cleanJsonStr.startsWith('```')) {
+                cleanJsonStr = cleanJsonStr.replace(/^```(json)?\n/, '').replace(/\n```$/, '')
+              }
+              const parsedData = JSON.parse(cleanJsonStr)
+              setSuggestionsResult(parsedData)
+              success = true
+              console.log(`Fallback success with frontend model: ${currentModelName}`)
+              break
+            }
+          } catch (modelErr) {
+            console.warn(`Fallback frontend model ${currentModelName} failed:`, modelErr.response?.data || modelErr.message)
+            lastError = modelErr
+          }
+        }
+
+        if (!success) {
+          throw lastError || new Error('All frontend models failed')
+        }
+
+      } catch (fallbackError) {
+        console.error('Frontend fallback suggestions error:', fallbackError)
+        setSuggestionsError('Could not connect to service. Please check your internet connection or try again.')
+      }
+    } finally {
+      clearInterval(progressInterval)
+      setSuggestionsLoading(false)
+    }
+  }
+
   function getRelativeTime(dateStr) {
     if (!dateStr) return ''
     const date = new Date(dateStr)
@@ -139,9 +285,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return
     if (user.isDemo) {
-      setProfile({ name: user.user_metadata?.name || 'Demo User' })
-      setNameInput(user.user_metadata?.name || 'Demo User')
-      setLoading(false)
+      setTimeout(() => {
+        setProfile({ name: user.user_metadata?.name || 'Demo User' })
+        setNameInput(user.user_metadata?.name || 'Demo User')
+        setLoading(false)
+      }, 0)
       return
     }
     supabase
@@ -354,75 +502,104 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        {/* Horizontal Navigation Tabs */}
-        <div className="flex flex-nowrap justify-start md:justify-center items-center border-b border-indigo-100 dark:border-slate-800/80 pb-4 mb-8 overflow-x-auto scrollbar-hide gap-1.5 md:gap-2 w-full">
-          {[
-            { id: 'home', label: 'Overview', icon: Sparkles },
-            { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
-            { id: 'tips', label: 'Tips & Guidelines', icon: Info },
-            { id: 'tools', label: 'Health Tools', icon: Activity },
-            { id: 'care', label: 'Care Finder', icon: MapPin },
-            { id: 'profile', label: 'Profile Settings', icon: User },
-          ].map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  if (tab.id === 'care' && activeTab !== 'care') {
-                    setIsLocDetecting(true)
-                    setLocAllowed(null)
-                    setLocCoords({ lat: null, lng: null })
-                    setSearchCity('')
-                    setManualCity('')
+      <main className="max-w-6xl mx-auto px-6 py-12">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          
+          {/* Navigation Sidebar */}
+          <div className="w-full lg:w-64 shrink-0 flex flex-col justify-between lg:min-h-[520px] bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm p-4 lg:p-5 rounded-2xl border border-indigo-100/30 dark:border-slate-800/80 shadow-sm">
+            {/* Main Tabs Group */}
+            <div className="flex lg:flex-col flex-row flex-wrap gap-2 overflow-x-auto lg:overflow-x-visible scrollbar-hide w-full">
+              {[
+                { id: 'home', label: 'Overview', icon: Sparkles },
+                { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
+                { id: 'suggestions', label: 'Medicine Suggester', icon: Pill },
+                { id: 'tips', label: 'Tips & Guidelines', icon: Info },
+                { id: 'tools', label: 'Health Tools', icon: Activity },
+                { id: 'care', label: 'Care Finder', icon: MapPin },
+              ].map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      if (tab.id === 'care' && activeTab !== 'care') {
+                        setIsLocDetecting(true)
+                        setLocAllowed(null)
+                        setLocCoords({ lat: null, lng: null })
+                        setSearchCity('')
+                        setManualCity('')
 
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        setLocCoords({
-                          lat: position.coords.latitude,
-                          lng: position.coords.longitude
-                        })
-                        setLocAllowed(true)
-                        setIsLocDetecting(false)
-                      },
-                      (err) => {
-                        console.error('Geolocation error:', err)
-                        setLocAllowed(false)
-                        setIsLocDetecting(false)
-                      },
-                      { enableHighAccuracy: true, timeout: 10000 }
-                    )
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            setLocCoords({
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude
+                            })
+                            setLocAllowed(true)
+                            setIsLocDetecting(false)
+                          },
+                          (err) => {
+                            console.error('Geolocation error:', err)
+                            setLocAllowed(false)
+                            setIsLocDetecting(false)
+                          },
+                          { enableHighAccuracy: true, timeout: 10000 }
+                        )
 
-                    setShowAmbuAnimation(true)
-                    setTimeout(() => setShowAmbuAnimation(false), 2000)
-                  }
-                  setActiveTab(tab.id)
-                  setSaveMessage('')
-                }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200 whitespace-nowrap ${isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800/60'
-                  }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 transition-all ${isActive
-                      ? 'bg-white/20 text-white'
-                      : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
-                    }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+                        setShowAmbuAnimation(true)
+                        setTimeout(() => setShowAmbuAnimation(false), 2000)
+                      }
+                      setActiveTab(tab.id)
+                      setSaveMessage('')
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 w-full whitespace-nowrap text-left ${isActive
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-slate-800/60'
+                      }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="flex-1">{tab.label}</span>
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all ${isActive
+                          ? 'bg-white/20 text-white'
+                          : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
+                        }`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            
+            {/* Profile Settings Tab (Fitted at the bottom-left on desktop) */}
+            <div className="mt-4 lg:mt-6 pt-4 border-t border-indigo-100/50 dark:border-slate-800/80 w-full">
+              {(() => {
+                const isActive = activeTab === 'profile'
+                return (
+                  <button
+                    onClick={() => {
+                      setActiveTab('profile')
+                      setSaveMessage('')
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 w-full text-left ${isActive
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <User className="w-4 h-4 shrink-0" />
+                    <span>Profile Settings</span>
+                  </button>
+                )
+              })()}
+            </div>
+          </div>
 
-        {/* Active Tab Content Wrapper */}
-        <div className="space-y-6">
+          {/* Main Content Pane */}
+          <div className="flex-1 w-full min-w-0">
+            {/* Active Tab Content Wrapper */}
+            <div className="space-y-6">
 
           {/* Home Tab */}
           {activeTab === 'home' && (
@@ -847,8 +1024,270 @@ export default function Dashboard() {
                       )}
                     </div>
                   )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI Medicine Suggester Tab */}
+          {activeTab === 'suggestions' && (
+            <div className="animate-tab-fade-in space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">AI Medicine Suggester</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                  Enter your symptoms, select your preferred system of medicine, and provide your age to get tailored medicine suggestions and dosage guidelines.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Panel: Symptoms Form */}
+                <div className="lg:col-span-1 space-y-5">
+                  <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-5">
+                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-indigo-50 dark:border-slate-700/60 pb-3">
+                      <FlaskConical className="w-4 h-4 text-indigo-500" />
+                      Remedy Request
+                    </h3>
+
+                    {/* Symptoms input */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Describe Symptoms
+                      </label>
+                      <textarea
+                        rows={3}
+                        placeholder="e.g. High fever, headache, body ache for 2 days"
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium resize-none"
+                      />
+                    </div>
+
+                    {/* Medical System Selector */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Preferred System
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { id: 'Allopathy', label: 'Allopathy', activeClass: 'bg-blue-600 text-white shadow-blue-500/20' },
+                          { id: 'Ayurvedic', label: 'Ayurvedic', activeClass: 'bg-emerald-600 text-white shadow-emerald-500/20' },
+                          { id: 'Homeopathy', label: 'Homeopathy', activeClass: 'bg-amber-600 text-white shadow-amber-500/20' }
+                        ].map(sys => {
+                          const isActive = medSystem === sys.id
+                          return (
+                            <button
+                              key={sys.id}
+                              type="button"
+                              onClick={() => setMedSystem(sys.id)}
+                              className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all text-center ${
+                                isActive
+                                  ? `${sys.activeClass} border-transparent shadow-md`
+                                  : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                              }`}
+                            >
+                              {sys.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Age input */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        User Age (Years)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="120"
+                        placeholder="e.g. 32"
+                        value={userAge}
+                        onChange={(e) => setUserAge(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleGetSuggestions}
+                      disabled={suggestionsLoading || !symptoms.trim() || !userAge}
+                      className="w-full py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-850 disabled:from-indigo-400 disabled:to-indigo-500 text-white rounded-xl text-sm font-extrabold shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Get Suggestions
+                    </button>
+                  </div>
                 </div>
-              )}
+
+                {/* Right Panel: Results & Loading */}
+                <div className="lg:col-span-2 min-h-[400px] relative">
+                  
+                  {/* Premium Loading Spinner */}
+                  {suggestionsLoading && (
+                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-10 p-6 text-center">
+                      <div className="relative flex items-center justify-center w-28 h-28 mb-6">
+                        <div className="absolute inset-0 rounded-full border-2 border-indigo-500/10 border-t-indigo-500 border-b-indigo-500 animate-spin" style={{ animationDuration: '4s' }} />
+                        <div className="absolute inset-2 rounded-full border border-dashed border-amber-500/20 animate-spin" style={{ animationDuration: '8s', animationDirection: 'reverse' }} />
+                        
+                        <div className="absolute w-20 h-20 bg-indigo-500/20 rounded-full animate-pulse-glow pointer-events-none" />
+                        
+                        <div className="z-10 animate-pill-spin text-indigo-500 dark:text-indigo-400">
+                          <Pill className="w-12 h-12" />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1.5 max-w-sm">
+                        <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">Formulating suggestions...</h4>
+                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold transition-all duration-300">
+                          {suggestionsProgress}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty state */}
+                  {!suggestionsLoading && !suggestionsResult && !suggestionsError && (
+                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
+                      <div className="w-16 h-16 bg-indigo-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4 text-indigo-500">
+                        <Pill className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Medical Recommendation Report</h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md">
+                        {!symptoms.trim() || !userAge
+                          ? 'Fill in your symptoms and age on the left to begin.'
+                          : 'Click "Get Suggestions" to generate tailored medicine suggestions.'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Error state */}
+                  {!suggestionsLoading && suggestionsError && (
+                    <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-950/40 rounded-2xl p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
+                      <div className="w-16 h-16 bg-red-550/10 dark:bg-red-950/20 rounded-full flex items-center justify-center mb-4 text-red-500">
+                        <AlertTriangle className="w-8 h-8 animate-bounce" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Safety Check Failed</h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mb-6">{suggestionsError}</p>
+                      <button
+                        onClick={handleGetSuggestions}
+                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all active:scale-95"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Report output */}
+                  {!suggestionsLoading && suggestionsResult && (
+                    <div className="space-y-6 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
+                      
+                      {/* System and Age group Overview banner */}
+                      <div className={`p-6 border rounded-2xl transition-all shadow-sm ${
+                        suggestionsResult.system === 'Ayurvedic'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50'
+                          : suggestionsResult.system === 'Homeopathy'
+                          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50'
+                          : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50'
+                      }`}>
+                        <div className="flex items-start gap-4">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+                            suggestionsResult.system === 'Ayurvedic'
+                              ? 'bg-emerald-500 text-white shadow-emerald-500/10'
+                              : suggestionsResult.system === 'Homeopathy'
+                              ? 'bg-amber-500 text-white shadow-amber-500/10'
+                              : 'bg-blue-500 text-white shadow-blue-500/10'
+                          }`}>
+                            <FlaskConical className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-1">
+                            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white leading-tight flex items-center gap-2.5">
+                              <span>{suggestionsResult.system} Recommendations</span>
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-white/10 text-slate-700 dark:text-slate-300">
+                                {suggestionsResult.ageGroup} Profile
+                              </span>
+                            </h3>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
+                              {suggestionsResult.summary}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Suggestions list */}
+                      {suggestionsResult.suggestions && suggestionsResult.suggestions.length > 0 ? (
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
+                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-indigo-50 dark:border-slate-700/60 pb-3">
+                            <Pill className="w-5 h-5 text-indigo-500" />
+                            Suggested Remedies & Dosages
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {suggestionsResult.suggestions.map((sug, idx) => (
+                              <div
+                                key={idx}
+                                className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-col justify-between"
+                              >
+                                <div className="space-y-1.5">
+                                  <h4 className="font-bold text-sm text-indigo-600 dark:text-indigo-400">
+                                    {sug.medicine}
+                                  </h4>
+                                  <p className="text-[11px] text-slate-405 dark:text-slate-500 font-bold uppercase tracking-wider">
+                                    Purpose: <span className="text-slate-600 dark:text-slate-300 normal-case font-medium">{sug.purpose}</span>
+                                  </p>
+                                  <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-semibold">
+                                    Dosage: <span className="text-slate-500 dark:text-slate-400 font-medium">{sug.dosage}</span>
+                                  </p>
+                                </div>
+                                <div className="mt-3 pt-2.5 border-t border-slate-205/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
+                                  <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                  <span>{sug.timing}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 text-center text-sm text-slate-500">
+                          No suggestions returned. Please refine your symptoms.
+                        </div>
+                      )}
+
+                      {/* Safety warnings list */}
+                      {suggestionsResult.warnings && suggestionsResult.warnings.length > 0 && (
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-red-550" />
+                            Clinical Safety Warnings
+                          </h3>
+                          <div className="space-y-2">
+                            {suggestionsResult.warnings.map((warn, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200/40 dark:border-red-900/40 rounded-xl"
+                              >
+                                <ShieldAlert className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                                <span className="text-xs text-red-700 dark:text-red-400 font-medium leading-relaxed">
+                                  {warn}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Disclaimer banner */}
+                      <div className="px-5 py-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-xl">
+                        <p className="text-amber-700/80 dark:text-amber-400/80 text-xs leading-relaxed">
+                          <strong>Disclaimer:</strong> This recommendation report is generated by AI and is intended for educational purposes only.
+                          It does not replace professional medical diagnosis or consultation.
+                          Always consult a qualified doctor or physician before administering any new medicine, especially for children, pregnant women, or elderly patients.
+                        </p>
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -942,6 +1381,8 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+        </div>
+          </div>
         </div>
       </main>
     </div>

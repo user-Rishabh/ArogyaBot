@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
+const SpeechRecognition =
+  typeof window !== 'undefined'
+    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    : null
+
 /**
  * useSpeech — wraps webkitSpeechRecognition for Indian language recognition.
  * @param {string} lang - 'en-IN' or 'hi-IN'
@@ -8,11 +13,6 @@ export function useSpeech(lang = 'en-IN') {
   const [transcript,  setTranscript]  = useState('')
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef(null)
-
-  const SpeechRecognition =
-    typeof window !== 'undefined'
-      ? window.SpeechRecognition || window.webkitSpeechRecognition
-      : null
 
   const isSupported = Boolean(SpeechRecognition)
 

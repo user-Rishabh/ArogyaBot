@@ -22,8 +22,10 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Routes
+const suggestionsRoutes = require('./routes/suggestions')
 app.use('/api/chat', chatRoutes)
-app.use('/api/whatsapp', whatsappRoutes) 
+app.use('/api/whatsapp', whatsappRoutes)
+app.use('/api/suggest-medicines', suggestionsRoutes)
 
 const { modelName } = require('./utils/claudeClient')
 
