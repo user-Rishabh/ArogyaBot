@@ -8,8 +8,77 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useSpeech } from '../hooks/useSpeech'
+import { supabase } from '../lib/supabase'
+import healthData from '../data/healthData.json'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
+
+const buildSystemPrompt = () => {
+  const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
+  const vaccineNames = healthData.vaccines.map(v => v.name).join(', ')
+
+  return `You are ArogyaBot, a public health awareness assistant for rural and semi-urban India.
+
+Your knowledge includes information about these diseases: ${diseaseNames}
+And these vaccines: ${vaccineNames}
+
+RULES:
+1. Only answer health-related questions (symptoms, diseases, prevention, vaccines).
+2. If asked anything unrelated to health, say: "I can only help with health-related questions."
+3. Always end serious symptom answers with: "Please consult a doctor for proper diagnosis."
+4. Keep answers under 150 words — simple and clear.
+5. Respond in the SAME language as the user (Hindi or English).
+6. Never diagnose — only provide general awareness information.
+7. Be warm and supportive in tone.`
+}
+
+const getGeminiResponse = async (userMessage, chatHistory = [], language = 'en') => {
+  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
+  if (!apiKey) {
+    throw new Error('Gemini API key is not configured.')
+  }
+
+  const messagesList = chatHistory.map(msg => ({
+    role: msg.role,
+    content: msg.content
+  }))
+
+  messagesList.push({
+    role: 'user',
+    content: userMessage
+  })
+
+  const systemPrompt = buildSystemPrompt()
+  const conversationText = messagesList.map(m => `${m.role}: ${m.content}`).join('\n')
+  const promptText = `
+${systemPrompt}
+
+Conversation:
+${conversationText}
+`
+
+  const response = await axios.post(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+    {
+      contents: [
+        {
+          parts: [
+            {
+              text: promptText
+            }
+          ]
+        }
+      ]
+    }
+  )
+
+  const candidate = response.data?.candidates?.[0]
+  const replyText = candidate?.content?.parts?.[0]?.text
+  if (!replyText) {
+    throw new Error('Empty response from Gemini API')
+  }
+  return replyText
+}
 
 /* ─── Demo responses pool ─── */
 const DEMO_RESPONSES_EN = {
@@ -132,6 +201,39 @@ export default function Chat() {
     inputRef.current?.focus()
   }, [])
 
+  /* Fetch existing messages for this session if it exists */
+  useEffect(() => {
+    if (!sessionId || isDemo) return
+
+    const fetchSessionMessages = async () => {
+      try {
+        setIsLoading(true)
+        const { data, error } = await supabase
+          .from('messages')
+          .select('role, content, created_at')
+          .eq('session_id', sessionId)
+          .order('created_at', { ascending: true })
+
+        if (error) throw error
+
+        if (Array.isArray(data)) {
+          const formatted = data.map((msg, index) => ({
+            id: index,
+            role: msg.role,
+            content: msg.content
+          }))
+          setMessages(formatted)
+        }
+      } catch (err) {
+        console.error('Error fetching session messages:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSessionMessages()
+  }, [sessionId, isDemo])
+
   function handleMicToggle() {
     if (isListening) {
       stopListening()
@@ -184,28 +286,47 @@ export default function Chat() {
         let activeSessionId = sessionId
 
         if (!activeSessionId) {
-          const sessionUrl = API_URL.endsWith('/api')
-            ? `${API_URL}/chat/session`
-            : `${API_URL}/api/chat/session`
-          const { data } = await axios.post(sessionUrl, {
-            userId:       user?.id,
-            firstMessage: text,
-          })
-          activeSessionId = data.sessionId
+          const title = text.substring(0, 50) + '...'
+          const { data: sessionData, error: sessionError } = await supabase
+            .from('chat_sessions')
+            .insert({ user_id: user?.id, title })
+            .select()
+            .maybeSingle()
+
+          if (sessionError) throw sessionError
+
+          activeSessionId = sessionData.id
           setSessionId(activeSessionId)
           window.history.replaceState(null, '', `/chat/${activeSessionId}`)
         }
 
-        const chatUrl = API_URL.endsWith('/api')
-          ? `${API_URL}/chat`
-          : `${API_URL}/api/chat`
-        const { data } = await axios.post(chatUrl, {
-          message:     text,
-          sessionId:   activeSessionId,
-          language,
-          chatHistory: buildHistory(updatedMessages),
-        })
-        reply = data.reply || data.response || data.message || 'I could not understand that. Please try again.'
+        // Call Gemini directly from the frontend
+        reply = await getGeminiResponse(text, buildHistory(updatedMessages), language)
+
+        // Store messages directly in Supabase (non-blocking)
+        if (activeSessionId) {
+          try {
+            const { error: dbError } = await supabase.from('messages').insert([
+              {
+                session_id: activeSessionId,
+                role: 'user',
+                content: text,
+                language: language
+              },
+              {
+                session_id: activeSessionId,
+                role: 'assistant',
+                content: reply,
+                language: language
+              }
+            ])
+            if (dbError) {
+              console.error('Database message insert error:', dbError)
+            }
+          } catch (dbErr) {
+            console.error('Database message insert exception:', dbErr)
+          }
+        }
       }
 
 
