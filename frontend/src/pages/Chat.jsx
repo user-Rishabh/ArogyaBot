@@ -196,6 +196,7 @@ export default function Chat() {
   const isDemo         = Boolean(user?.isDemo)
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
+  const preventFetchRef = useRef(false)
 
   const speechLang = language === 'hi' ? 'hi-IN' : 'en-IN'
   const {
@@ -225,6 +226,11 @@ export default function Chat() {
   /* Fetch existing messages for this session if it exists */
   useEffect(() => {
     if (!sessionId || isDemo) return
+
+    if (preventFetchRef.current) {
+      preventFetchRef.current = false
+      return
+    }
 
     const fetchSessionMessages = async () => {
       try {
@@ -317,6 +323,7 @@ export default function Chat() {
           if (sessionError) throw sessionError
 
           activeSessionId = sessionData.id
+          preventFetchRef.current = true
           setSessionId(activeSessionId)
           window.history.replaceState(null, '', `/chat/${activeSessionId}`)
         }
