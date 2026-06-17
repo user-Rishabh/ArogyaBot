@@ -156,9 +156,9 @@ export default function BMICalculator() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="space-y-8">
         {/* Input Form */}
-        <form onSubmit={calculateBmi} className="space-y-5">
+        <form onSubmit={calculateBmi} className="max-w-xl space-y-5">
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm animate-fade-in">
               {error}
@@ -206,7 +206,7 @@ export default function BMICalculator() {
         </form>
 
         {/* Results Screen */}
-        <div className="flex flex-col justify-center">
+        <div className="w-full">
           {bmi !== null ? (
             <div className="space-y-6 animate-custom-fade-in">
               <div className="flex items-baseline justify-between">

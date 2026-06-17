@@ -223,9 +223,9 @@ export default function Dashboard() {
   }
 
   const tips = [
-    { icon: Sparkles, label: 'Describe your symptoms', hint: 'Be specific — mention duration, severity, and location.' },
-    { icon: Clock, label: 'Share your history', hint: 'Mention any existing conditions or medications.' },
-    { icon: MessageCircle, label: 'Ask follow-ups', hint: 'ArogyaBot remembers context within your session.' },
+    { icon: Sparkles, label: 'Describe your symptoms', hint: 'Be specific — mention duration, severity, and location.', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-550/10 dark:bg-indigo-950/50' },
+    { icon: Clock, label: 'Share your history', hint: 'Mention any existing conditions or medications.', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-550/10 dark:bg-amber-950/50' },
+    { icon: MessageCircle, label: 'Ask follow-ups', hint: 'ArogyaBot remembers context within your session.', color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-550/10 dark:bg-violet-950/50' },
   ]
 
   return (
@@ -248,19 +248,17 @@ export default function Dashboard() {
                 {loading ? '…' : displayName}
               </span>
             </div>
-            {/* WhatsApp button with pulse ring */}
-            <div className="relative flex">
-              <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25 pointer-events-none" />
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_DEFAULT_TEXT)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative z-10 w-11 h-11 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm transition-all duration-200 hover:scale-105"
-                title="Chat on WhatsApp"
-              >
-                <MessageCircle className="w-5 h-5 fill-white text-green-500" />
-              </a>
-            </div>
+            {/* WhatsApp Link - subtle inline text link */}
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_DEFAULT_TEXT)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 px-3 min-h-[44px] text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:underline transition-all duration-200"
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4 fill-green-600 dark:fill-green-400 text-green-600 dark:text-green-400" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </a>
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}
@@ -283,7 +281,7 @@ export default function Dashboard() {
 
       <main className="max-w-5xl mx-auto px-6 py-12">
         {/* Horizontal Navigation Tabs */}
-        <div className="flex justify-start md:justify-center items-center border-b border-indigo-100 dark:border-slate-800/80 pb-4 mb-8 overflow-x-auto scrollbar-hide gap-1.5 md:gap-2">
+        <div className="flex flex-nowrap justify-start md:justify-center items-center border-b border-indigo-100 dark:border-slate-800/80 pb-4 mb-8 overflow-x-auto scrollbar-hide gap-1.5 md:gap-2 w-full">
           {[
             { id: 'home', label: 'Overview', icon: Sparkles },
             { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
@@ -354,8 +352,8 @@ export default function Dashboard() {
           {/* Home Tab */}
           {activeTab === 'home' && (
             <div className="animate-tab-fade-in space-y-8">
-              {/* Hero Welcome Banner */}
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              {/* Hero Welcome Banner with animated gradient */}
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 bg-[length:200%_auto] animate-gradient p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
                 {/* Background decorative glows */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
@@ -381,6 +379,20 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Quick Stats Row */}
+              <div className="grid grid-cols-3 gap-4 animate-card-fade-in opacity-0" style={{ animationDelay: '25ms' }}>
+                {[
+                  { label: 'Total Chats', value: sessions.length, bg: 'from-blue-50 to-indigo-50 dark:from-slate-800/40 dark:to-slate-800/60 text-indigo-600 dark:text-indigo-400' },
+                  { label: 'Last Active', value: sessions.length > 0 ? getRelativeTime(sessions[0]?.created_at || sessions[0]?.createdAt) : 'No chats', bg: 'from-amber-50 to-orange-50 dark:from-slate-800/40 dark:to-slate-800/60 text-amber-600 dark:text-amber-400' },
+                  { label: 'Language', value: 'English (EN)', bg: 'from-emerald-50 to-teal-50 dark:from-slate-800/40 dark:to-slate-800/60 text-emerald-600 dark:text-emerald-400' }
+                ].map((stat) => (
+                  <div key={stat.label} className={`bg-gradient-to-br ${stat.bg} border border-indigo-100/30 dark:border-slate-800 p-4 rounded-2xl flex flex-col justify-center`}>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">{stat.label}</span>
+                    <span className="text-sm md:text-base font-extrabold text-slate-900 dark:text-white mt-0.5">{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+
               {/* Short Tips Grid */}
               <div className="pt-6 border-t border-indigo-50 dark:border-slate-800/80 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
                 <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
@@ -393,12 +405,19 @@ export default function Dashboard() {
                       className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-indigo-100/60 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md transition-all duration-200 shadow-sm animate-card-fade-in opacity-0"
                       style={{ animationDelay: `${100 + idx * 50}ms` }}
                     >
-                      <t.icon className="w-5 h-5 text-indigo-500 dark:text-indigo-400 mb-3" />
+                      <div className={`w-10 h-10 rounded-xl ${t.bg} flex items-center justify-center mb-3`}>
+                        <t.icon className={`w-5 h-5 ${t.color}`} />
+                      </div>
                       <p className="text-slate-900 dark:text-white font-bold text-sm mb-1">{t.label}</p>
                       <p className="text-slate-400 dark:text-slate-500 text-xs leading-relaxed">{t.hint}</p>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Emergency numbers moved here */}
+              <div className="pt-6 border-t border-indigo-50 dark:border-slate-800/80 animate-card-fade-in opacity-0" style={{ animationDelay: '100ms' }}>
+                <EmergencyNumbers />
               </div>
             </div>
           )}
@@ -467,7 +486,7 @@ export default function Dashboard() {
                                 e.stopPropagation();
                                 handleDeleteSession(sId);
                               }}
-                              className="p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700/60"
+                              className="p-1 rounded-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700/60"
                               title="Delete Chat"
                               aria-label="Delete chat"
                             >
@@ -486,9 +505,6 @@ export default function Dashboard() {
                   })}
                 </div>
               )}
-              <div className="pt-6 animate-card-fade-in opacity-0" style={{ animationDelay: `${sessions.length * 50 + 50}ms` }}>
-                <EmergencyNumbers />
-              </div>
             </div>
           )}
 
@@ -706,7 +722,21 @@ export default function Dashboard() {
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Customize how ArogyaBot addresses you.</p>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-8 shadow-sm max-w-xl animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-8 shadow-sm max-w-2xl animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+                {/* Avatar circle with user initials */}
+                <div className="flex flex-col items-center mb-8 pb-6 border-b border-slate-100 dark:border-slate-700/50">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-indigo-500/20 ring-4 ring-indigo-50 dark:ring-slate-900">
+                    {(() => {
+                      const name = displayName || 'User'
+                      const parts = name.split(' ')
+                      if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase()
+                      return name.substring(0, 2).toUpperCase()
+                    })()}
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-3">{displayName}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{user?.email}</p>
+                </div>
+
                 {saveMessage && (
                   <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm mb-6 ${saveSuccess
                       ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
