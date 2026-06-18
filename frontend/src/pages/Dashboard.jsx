@@ -131,6 +131,55 @@ export default function Dashboard() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [suggestionsProgress, setSuggestionsProgress] = useState('')
   const [suggestionsError, setSuggestionsError] = useState('')
+  const [suggesterLang, setSuggesterLang] = useState('EN') // 'EN' or 'HI'
+  const [suggestionsLoadingText, setSuggestionsLoadingText] = useState('Analyzing your symptoms...')
+
+  useEffect(() => {
+    let timeoutId
+    if (suggestionsLoading) {
+      setSuggestionsLoadingText('Analyzing your symptoms...')
+      timeoutId = setTimeout(() => {
+        setSuggestionsLoadingText('Generating personalized remedies...')
+      }, 1000)
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [suggestionsLoading])
+
+  const handleChipClick = (chip) => {
+    const chipLower = chip.toLowerCase()
+    const currentSymptoms = symptoms.trim()
+    
+    if (currentSymptoms.toLowerCase().includes(chipLower)) {
+      let newSymptoms = currentSymptoms
+        .replace(new RegExp(`\\b${chip}\\b`, 'gi'), '')
+        .replace(/,\s*,/g, ',')
+        .replace(/^,\s*/, '')
+        .replace(/,\s*$/, '')
+        .trim()
+      setSymptoms(newSymptoms)
+    } else {
+      if (currentSymptoms === '') {
+        setSymptoms(chip)
+      } else {
+        const delimiter = currentSymptoms.endsWith(',') ? ' ' : ', '
+        setSymptoms(currentSymptoms + delimiter + chip)
+      }
+    }
+  }
+
+  const handleShareWhatsApp = () => {
+    if (!suggestionsResult) return
+
+    const remedyDetails = (suggestionsResult.suggestions || [])
+      .map(s => `${s.medicine} - ${s.dosage}`)
+      .join('\n')
+
+    const summaryText = `ArogyaBot Remedy Report\nSymptoms: ${symptoms}\nSystem: ${medSystem}\n${remedyDetails}`
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(summaryText)}`, '_blank')
+  }
 
   const handleGetSuggestions = async () => {
     if (!symptoms.trim()) {
@@ -145,6 +194,8 @@ export default function Dashboard() {
     setSuggestionsLoading(true)
     setSuggestionsError('')
     setSuggestionsResult(null)
+
+    const finalSymptoms = suggesterLang === 'HI' ? `${symptoms} (Please respond in Hindi language)` : symptoms
 
     const steps = [
       '🧪 Analyzing symptoms and age profile...',
@@ -166,7 +217,7 @@ export default function Dashboard() {
     try {
       const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
       const response = await axios.post(`${apiURL}/suggest-medicines`, {
-        symptoms,
+        symptoms: finalSymptoms,
         system: medSystem,
         age: parseInt(userAge)
       })
@@ -205,7 +256,7 @@ JSON Schema:
   ]
 }`
 
-        const promptText = `${systemPrompt}\n\nUser Input Details:\nSymptoms: ${symptoms}\nPreferred System: ${medSystem}\nUser Age: ${userAge}`
+        const promptText = `${systemPrompt}\n\nUser Input Details:\nSymptoms: ${finalSymptoms}\nPreferred System: ${medSystem}\nUser Age: ${userAge}`
         
         const modelsToTry = [
           'gemini-3.5-flash',
@@ -306,6 +357,9 @@ JSON Schema:
       setHeightInput(initialProfile.height)
       setGenderInput(initialProfile.gender)
       setConditionsInput(initialProfile.conditions)
+      if (initialProfile.age) {
+        setUserAge(initialProfile.age.toString())
+      }
       setLoading(false)
       return
     }
@@ -331,6 +385,9 @@ JSON Schema:
         setHeightInput(initialProfile.height)
         setGenderInput(initialProfile.gender)
         setConditionsInput(initialProfile.conditions)
+        if (initialProfile.age) {
+          setUserAge(initialProfile.age.toString())
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -1101,11 +1158,10 @@ JSON Schema:
                   Enter your symptoms, select your preferred system of medicine, and provide your age to get tailored medicine suggestions and dosage guidelines.
                 </p>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 {/* Left Panel: Symptoms Form */}
-                <div className="lg:col-span-1 space-y-5">
-                  <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-5">
+                <div className="w-full space-y-5">
+                  <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
                     <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-indigo-50 dark:border-slate-700/60 pb-3">
                       <FlaskConical className="w-4 h-4 text-indigo-500" />
                       Remedy Request
@@ -1113,7 +1169,30 @@ JSON Schema:
 
                     {/* Symptoms input */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Quick Symptoms
+                      </label>
+                      <div className="flex flex-wrap gap-2.5 mb-2 max-h-28 overflow-y-auto">
+                        {['Headache', 'Fever', 'Cough', 'Cold', 'Body Ache', 'Nausea', 'Fatigue', 'Back Pain'].map((chip) => {
+                          const isSelected = symptoms.toLowerCase().includes(chip.toLowerCase())
+                          return (
+                            <button
+                              key={chip}
+                              type="button"
+                              onClick={() => handleChipClick(chip)}
+                              className={`px-3.5 py-1.5 rounded-full text-sm font-bold transition-all duration-205 border ${
+                                isSelected
+                                  ? 'bg-indigo-600 text-white border-transparent shadow-sm'
+                                  : 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/40'
+                              }`}
+                            >
+                              {chip}
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                         Describe Symptoms
                       </label>
                       <textarea
@@ -1134,7 +1213,7 @@ JSON Schema:
                         {[
                           { id: 'Allopathy', label: 'Allopathy', activeClass: 'bg-blue-600 text-white shadow-blue-500/20' },
                           { id: 'Ayurvedic', label: 'Ayurvedic', activeClass: 'bg-emerald-600 text-white shadow-emerald-500/20' },
-                          { id: 'Homeopathy', label: 'Homeopathy', activeClass: 'bg-amber-600 text-white shadow-amber-500/20' }
+                          { id: 'Homeopathy', label: 'Homeopathy', activeClass: 'bg-amber-605 text-white shadow-amber-500/20' }
                         ].map(sys => {
                           const isActive = medSystem === sys.id
                           return (
@@ -1157,7 +1236,7 @@ JSON Schema:
 
                     {/* Age input */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                         User Age (Years)
                       </label>
                       <input
@@ -1171,47 +1250,63 @@ JSON Schema:
                       />
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleGetSuggestions}
-                      disabled={suggestionsLoading || !symptoms.trim() || !userAge}
-                      className="w-full py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-850 disabled:from-indigo-400 disabled:to-indigo-500 text-white rounded-xl text-sm font-extrabold shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Get Suggestions
-                    </button>
+                    <div className="flex gap-3 mt-4 flex-col sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => setSuggesterLang(prev => (prev === 'EN' ? 'HI' : 'EN'))}
+                        className={`px-3 py-3 rounded-xl border text-xs font-black transition-all flex items-center justify-center shrink-0 w-full sm:w-14 ${
+                          suggesterLang === 'HI'
+                            ? 'bg-amber-500 text-white border-transparent shadow-md shadow-amber-500/20'
+                            : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                        title="Toggle Hindi / English"
+                      >
+                        {suggesterLang === 'HI' ? 'हिंदी' : 'EN'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleGetSuggestions}
+                        disabled={suggestionsLoading || !symptoms.trim() || !userAge}
+                        className="w-full sm:flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-850 disabled:from-indigo-400 disabled:to-indigo-500 text-white rounded-xl text-sm font-extrabold shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Get Suggestions
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Right Panel: Results & Loading */}
-                <div className="lg:col-span-2 min-h-[400px] relative">
+                <div className="w-full min-h-[400px] relative">
                   
-                  {/* Premium Loading Spinner */}
+                  {/* Heartbeat Medical Loading Animation */}
                   {suggestionsLoading && (
-                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-10 p-6 text-center">
-                      <div className="relative flex items-center justify-center w-28 h-28 mb-6">
-                        <div className="absolute inset-0 rounded-full border-2 border-indigo-500/10 border-t-indigo-500 border-b-indigo-500 animate-spin" style={{ animationDuration: '4s' }} />
-                        <div className="absolute inset-2 rounded-full border border-dashed border-amber-500/20 animate-spin" style={{ animationDuration: '8s', animationDirection: 'reverse' }} />
-                        
-                        <div className="absolute w-20 h-20 bg-indigo-500/20 rounded-full animate-pulse-glow pointer-events-none" />
-                        
-                        <div className="z-10 animate-pill-spin text-indigo-500 dark:text-indigo-400">
-                          <Pill className="w-12 h-12" />
+                    <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center z-10 p-6 text-center animate-fade-in">
+                      <div className="relative flex flex-col items-center justify-center space-y-6">
+                        <div className="relative flex items-center justify-center w-24 h-24">
+                          {/* Siren Red Glow */}
+                          <div className="absolute w-24 h-24 rounded-full bg-red-500/20 blur-xl animate-ping" />
+                          <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center shadow-lg border-2 border-slate-100 dark:border-slate-850">
+                            <HeartPulse className="w-10 h-10 text-red-500 animate-pulse" />
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="space-y-1.5 max-w-sm">
-                        <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">Formulating suggestions...</h4>
-                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold transition-all duration-300">
-                          {suggestionsProgress}
-                        </p>
+                        
+                        <div className="space-y-2 max-w-sm">
+                          <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base animate-pulse">
+                            {suggestionsLoadingText}
+                          </h4>
+                          <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold transition-all duration-300">
+                            {suggestionsProgress}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Empty state */}
                   {!suggestionsLoading && !suggestionsResult && !suggestionsError && (
-                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
                       <div className="w-16 h-16 bg-indigo-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4 text-indigo-500">
                         <Pill className="w-8 h-8" />
                       </div>
@@ -1226,7 +1321,7 @@ JSON Schema:
 
                   {/* Error state */}
                   {!suggestionsLoading && suggestionsError && (
-                    <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-950/40 rounded-2xl p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-950/40 rounded-2xl p-6 sm:p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
                       <div className="w-16 h-16 bg-red-550/10 dark:bg-red-950/20 rounded-full flex items-center justify-center mb-4 text-red-500">
                         <AlertTriangle className="w-8 h-8 animate-bounce" />
                       </div>
@@ -1246,17 +1341,17 @@ JSON Schema:
                     <div className="space-y-6 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
                       
                       {/* System and Age group Overview banner */}
-                      <div className={`p-6 border rounded-2xl transition-all shadow-sm ${
+                      <div className={`p-6 sm:p-8 border-l-4 rounded-2xl transition-all shadow-sm ${
                         suggestionsResult.system === 'Ayurvedic'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50'
+                          ? 'bg-green-50 dark:bg-green-950/20 border-green-250 dark:border-green-900/50 text-green-700 dark:text-green-300 border-l-green-500'
                           : suggestionsResult.system === 'Homeopathy'
-                          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50'
-                          : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50'
+                          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-250 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 border-l-amber-500'
+                          : 'bg-blue-50 dark:bg-blue-950/20 border-blue-250 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 border-l-blue-500'
                       }`}>
                         <div className="flex items-start gap-4">
                           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
                             suggestionsResult.system === 'Ayurvedic'
-                              ? 'bg-emerald-500 text-white shadow-emerald-500/10'
+                              ? 'bg-green-500 text-white shadow-green-500/10'
                               : suggestionsResult.system === 'Homeopathy'
                               ? 'bg-amber-500 text-white shadow-amber-500/10'
                               : 'bg-blue-500 text-white shadow-blue-500/10'
@@ -1270,7 +1365,7 @@ JSON Schema:
                                 {suggestionsResult.ageGroup} Profile
                               </span>
                             </h3>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
+                            <p className="text-slate-655 dark:text-slate-300 text-sm leading-relaxed font-medium">
                               {suggestionsResult.summary}
                             </p>
                           </div>
@@ -1279,30 +1374,57 @@ JSON Schema:
 
                       {/* Suggestions list */}
                       {suggestionsResult.suggestions && suggestionsResult.suggestions.length > 0 ? (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-indigo-50 dark:border-slate-700/60 pb-3">
-                            <Pill className="w-5 h-5 text-indigo-500" />
-                            Suggested Remedies & Dosages
-                          </h3>
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
+                          <div className="flex items-center justify-between border-b border-indigo-50 dark:border-slate-700/60 pb-3 flex-wrap gap-2">
+                            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                              <Pill className="w-5 h-5 text-indigo-500" />
+                              Suggested Remedies & Dosages
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={handleShareWhatsApp}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95"
+                            >
+                              Share on WhatsApp
+                            </button>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {suggestionsResult.suggestions.map((sug, idx) => (
                               <div
                                 key={idx}
-                                className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-col justify-between"
+                                className={`p-5 bg-slate-50 dark:bg-slate-900 border border-l-4 rounded-2xl flex flex-col justify-between ${
+                                  suggestionsResult.system === 'Ayurvedic'
+                                    ? 'border-l-green-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                    : suggestionsResult.system === 'Homeopathy'
+                                    ? 'border-l-amber-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                    : 'border-l-blue-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                }`}
                               >
                                 <div className="space-y-1.5">
-                                  <h4 className="font-bold text-sm text-indigo-600 dark:text-indigo-400">
+                                  <h4 className={`font-bold text-sm ${
+                                    suggestionsResult.system === 'Ayurvedic'
+                                      ? 'text-green-600 dark:text-green-400'
+                                      : suggestionsResult.system === 'Homeopathy'
+                                      ? 'text-amber-600 dark:text-amber-400'
+                                      : 'text-blue-600 dark:text-blue-400'
+                                  }`}>
                                     {sug.medicine}
                                   </h4>
-                                  <p className="text-[11px] text-slate-405 dark:text-slate-500 font-bold uppercase tracking-wider">
-                                    Purpose: <span className="text-slate-600 dark:text-slate-300 normal-case font-medium">{sug.purpose}</span>
+                                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                                    Purpose: <span className="text-slate-600 dark:text-slate-355 normal-case font-medium">{sug.purpose}</span>
                                   </p>
-                                  <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-semibold">
+                                  <p className="text-xs text-slate-655 dark:text-slate-350 leading-relaxed font-semibold">
                                     Dosage: <span className="text-slate-500 dark:text-slate-400 font-medium">{sug.dosage}</span>
                                   </p>
                                 </div>
-                                <div className="mt-3 pt-2.5 border-t border-slate-205/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
-                                  <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                <div className="mt-3 pt-2.5 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
+                                  <Clock className={`w-3.5 h-3.5 shrink-0 ${
+                                    suggestionsResult.system === 'Ayurvedic'
+                                      ? 'text-green-500'
+                                      : suggestionsResult.system === 'Homeopathy'
+                                      ? 'text-amber-500'
+                                      : 'text-blue-500'
+                                  }`} />
                                   <span>{sug.timing}</span>
                                 </div>
                               </div>
@@ -1310,14 +1432,14 @@ JSON Schema:
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 text-center text-sm text-slate-500">
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 text-center text-sm text-slate-500">
                           No suggestions returned. Please refine your symptoms.
                         </div>
                       )}
 
                       {/* Safety warnings list */}
                       {suggestionsResult.warnings && suggestionsResult.warnings.length > 0 && (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-sm">
                           <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-red-550" />
                             Clinical Safety Warnings
@@ -1338,15 +1460,20 @@ JSON Schema:
                         </div>
                       )}
 
+                      {/* Prominent Safety Disclaimer Banner */}
+                      <div className="px-6 py-5 sm:p-8 bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-900/50 rounded-xl text-red-700 dark:text-red-400 font-bold text-xs leading-relaxed flex items-start gap-2.5 shadow-sm">
+                        <span className="shrink-0 text-sm">⚠️</span>
+                        <span>These are general suggestions only. Always consult a qualified doctor before taking any medication.</span>
+                      </div>
+
                       {/* Disclaimer banner */}
-                      <div className="px-5 py-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-xl">
+                      <div className="px-6 py-5 sm:p-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-xl">
                         <p className="text-amber-700/80 dark:text-amber-400/80 text-xs leading-relaxed">
                           <strong>Disclaimer:</strong> This recommendation report is generated by AI and is intended for educational purposes only.
                           It does not replace professional medical diagnosis or consultation.
                           Always consult a qualified doctor or physician before administering any new medicine, especially for children, pregnant women, or elderly patients.
                         </p>
                       </div>
-
                     </div>
                   )}
                 </div>
