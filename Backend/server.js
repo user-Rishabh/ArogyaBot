@@ -24,6 +24,7 @@ app.use(express.urlencoded({ extended: true }))
 // Routes
 app.use('/api/chat', chatRoutes)
 app.use('/api/whatsapp', whatsappRoutes) 
+app.use('/api/diet', require('./routes/diet'))
 
 const { modelName } = require('./utils/claudeClient')
 
