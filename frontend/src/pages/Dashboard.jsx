@@ -115,6 +115,16 @@ export default function Dashboard() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(true)
+  const [dietData, setDietData] = useState({
+  age: '',
+  weight: '',
+  height: '',
+  goal: 'Weight Loss',
+  dietType: 'Vegetarian'
+})
+
+const [dietPlan, setDietPlan] = useState(null)
+const [dietLoading, setDietLoading] = useState(false)
 
   // Geolocation and Care Finder states
   const [locCoords, setLocCoords] = useState({ lat: null, lng: null })
@@ -447,6 +457,22 @@ JSON Schema:
   }
 
   const displayName = profile?.name || formatName(user?.email)
+  const generateDietPlan = async () => {
+  try {
+    setDietLoading(true)
+
+    const response = await axios.post(
+      'http://localhost:3000/api/diet/generate',
+      dietData
+    )
+
+    setDietPlan(response.data)
+  } catch (error) {
+    console.error(error)
+  } finally {
+    setDietLoading(false)
+  }
+}
 
   async function handleLogout() { await logout(); navigate('/') }
   function startNewChat() { navigate('/chat') }
@@ -622,6 +648,44 @@ JSON Schema:
         </div>
       </nav>
 
+      <main className="max-w-5xl mx-auto px-6 py-12">
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-indigo-100 dark:border-slate-800 mb-8 overflow-x-auto gap-1">
+          {[
+            { id: 'home', label: 'Overview', icon: Sparkles },
+            { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
+             { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
+            { id: 'tips', label: 'Tips & Guidelines', icon: Info },
+            { id: 'profile', label: 'Profile Settings', icon: User },
+          ].map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  setSaveMessage('')
+                }}
+                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all duration-200 whitespace-nowrap -mb-[2px] ${
+                  isActive
+                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-1 transition-all ${
+                    isActive ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
@@ -1145,6 +1209,125 @@ JSON Schema:
                     </div>
                   )}
             </div>
+          </div>
+        )}
+        {activeTab === 'diet' && (
+  <div className="space-y-6">
+
+    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+      Diet Planner
+    </h2>
+
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl">
+
+      <div className="grid md:grid-cols-2 gap-4">
+
+        <input
+          type="number"
+          placeholder="Age"
+          className="input-field"
+          onChange={(e) =>
+            setDietData({
+              ...dietData,
+              age: e.target.value
+            })
+          }
+        />
+
+        <input
+          type="number"
+          placeholder="Weight (kg)"
+          className="input-field"
+          onChange={(e) =>
+            setDietData({
+              ...dietData,
+              weight: e.target.value
+            })
+          }
+        />
+
+        <input
+          type="number"
+          placeholder="Height (cm)"
+          className="input-field"
+          onChange={(e) =>
+            setDietData({
+              ...dietData,
+              height: e.target.value
+            })
+          }
+        />
+
+        <select
+          className="input-field"
+          onChange={(e) =>
+            setDietData({
+              ...dietData,
+              goal: e.target.value
+            })
+          }
+        >
+          <option>Weight Loss</option>
+          <option>Weight Gain</option>
+          <option>Maintenance</option>
+        </select>
+      </div>
+
+      <button
+        onClick={generateDietPlan}
+        className="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-xl"
+      >
+        {dietLoading ? 'Generating...' : 'Generate Diet Plan'}
+      </button>
+    </div>
+
+    {dietPlan && (
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl">
+
+        <h3 className="text-xl font-bold mb-4">
+          Your Diet Plan
+        </h3>
+
+        <div className="space-y-2">
+          <p><strong>Breakfast:</strong> {dietPlan.breakfast}</p>
+          <p><strong>Lunch:</strong> {dietPlan.lunch}</p>
+          <p><strong>Snacks:</strong> {dietPlan.snacks}</p>
+          <p><strong>Dinner:</strong> {dietPlan.dinner}</p>
+          <p><strong>BMI:</strong> {dietPlan.bmi}</p>
+          <p><strong>Calories:</strong> {dietPlan.calories}</p>
+          <p><strong>Protein:</strong> {dietPlan.protein}</p>
+          <p><strong>Carbs:</strong> {dietPlan.carbs}</p>
+          <p><strong>Fat:</strong> {dietPlan.fat}</p>
+          <p><strong>Water Intake:</strong> {dietPlan.waterIntake}</p>
+        </div>
+
+        <button
+          className="mt-4 px-6 py-3 bg-green-600 text-white rounded-xl"
+          onClick={() => {
+            const message = `
+Diet Plan
+
+Breakfast: ${dietPlan.breakfast}
+Lunch: ${dietPlan.lunch}
+Snacks: ${dietPlan.snacks}
+Dinner: ${dietPlan.dinner}
+
+Calories: ${dietPlan.calories}
+BMI: ${dietPlan.bmi}
+            `
+
+            window.open(
+              `https://wa.me/?text=${encodeURIComponent(message)}`
+            )
+          }}
+        >
+          Share on WhatsApp
+        </button>
+
+      </div>
+    )}
+  </div>
+)}
           )}
         </div>
       )}
