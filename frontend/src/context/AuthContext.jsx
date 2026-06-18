@@ -14,31 +14,81 @@ const DEMO_USER = {
 const DEMO_KEY = 'arogyabot_demo_session'
 
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user,            setUser]            = useState(null)
+  const [profile,         setProfile]         = useState(null)
+  const [profileComplete, setProfileComplete] = useState(false)
+  const [loading,         setLoading]         = useState(true)
+
+  const updateProfileComplete = (updatedProfile) => {
+    setProfile(updatedProfile)
+    setProfileComplete(Boolean(updatedProfile?.onboarding_complete))
+  }
 
   useEffect(() => {
     // Restore demo session from localStorage first
     const demoActive = localStorage.getItem(DEMO_KEY) === 'true'
     if (demoActive) {
-      setTimeout(() => {
-        setUser(DEMO_USER)
-        setLoading(false)
-      }, 0)
+      const demoProfile = JSON.parse(localStorage.getItem('arogyabot_demo_profile') || '{}')
+      setUser(DEMO_USER)
+      setProfile(demoProfile)
+      setProfileComplete(Boolean(demoProfile.onboarding_complete))
+      setLoading(false)
       return
+    }
+
+    const checkSessionAndProfile = async (sessionUser) => {
+      if (!sessionUser) {
+        setUser(null)
+        setProfile(null)
+        setProfileComplete(false)
+        setLoading(false)
+        return
+      }
+
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', sessionUser.id)
+          .maybeSingle()
+
+        setUser(sessionUser)
+        if (profileData) {
+          const meta = sessionUser.user_metadata || {}
+          const mergedProfile = {
+            ...profileData,
+            name: profileData.name || meta.name || '',
+            age: profileData.age !== undefined && profileData.age !== null ? profileData.age : (meta.age || ''),
+            weight: profileData.weight !== undefined && profileData.weight !== null ? profileData.weight : (meta.weight || ''),
+            height: profileData.height !== undefined && profileData.height !== null ? profileData.height : (meta.height || ''),
+            gender: profileData.gender || meta.gender || '',
+            conditions: profileData.conditions || meta.conditions || '',
+            onboarding_complete: Boolean(profileData.onboarding_complete)
+          }
+          setProfile(mergedProfile)
+          setProfileComplete(Boolean(profileData.onboarding_complete))
+        } else {
+          setProfile(null)
+          setProfileComplete(false)
+        }
+      } catch (err) {
+        console.error('Session/profile load error:', err)
+        setUser(sessionUser)
+        setProfileComplete(false)
+      } finally {
+        setLoading(false)
+      }
     }
 
     // Get existing Supabase session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+      checkSessionAndProfile(session?.user ?? null)
     })
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
+        checkSessionAndProfile(session?.user ?? null)
       }
     )
 
@@ -96,7 +146,18 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signup, login, logout, loginAsDemo, googleLogin }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      profileComplete, 
+      updateProfileComplete, 
+      loading, 
+      signup, 
+      login, 
+      logout, 
+      loginAsDemo, 
+      googleLogin 
+    }}>
       {children}
     </AuthContext.Provider>
   )

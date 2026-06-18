@@ -107,6 +107,11 @@ export default function Dashboard() {
   // Tabs and profile settings state
   const [activeTab, setActiveTab] = useState('home') // 'home', 'chats', 'tips', 'profile'
   const [nameInput, setNameInput] = useState('')
+  const [ageInput, setAgeInput] = useState('')
+  const [weightInput, setWeightInput] = useState('')
+  const [heightInput, setHeightInput] = useState('')
+  const [genderInput, setGenderInput] = useState('')
+  const [conditionsInput, setConditionsInput] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(true)
@@ -285,23 +290,47 @@ JSON Schema:
   useEffect(() => {
     if (!user) return
     if (user.isDemo) {
-      setTimeout(() => {
-        setProfile({ name: user.user_metadata?.name || 'Demo User' })
-        setNameInput(user.user_metadata?.name || 'Demo User')
-        setLoading(false)
-      }, 0)
+      const demoProfile = JSON.parse(localStorage.getItem('arogyabot_demo_profile') || '{}')
+      const initialProfile = {
+        name: demoProfile.name || user.user_metadata?.name || 'Demo User',
+        age: demoProfile.age || '',
+        weight: demoProfile.weight || '',
+        height: demoProfile.height || '',
+        gender: demoProfile.gender || '',
+        conditions: demoProfile.conditions || ''
+      }
+      setProfile(initialProfile)
+      setNameInput(initialProfile.name)
+      setAgeInput(initialProfile.age)
+      setWeightInput(initialProfile.weight)
+      setHeightInput(initialProfile.height)
+      setGenderInput(initialProfile.gender)
+      setConditionsInput(initialProfile.conditions)
+      setLoading(false)
       return
     }
     supabase
       .from('profiles')
-      .select('name')
+      .select('*')
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) {
-          setProfile(data)
-          setNameInput(data.name || '')
+        const meta = user.user_metadata || {}
+        const initialProfile = {
+          name: data?.name || meta.name || '',
+          age: data?.age !== undefined && data?.age !== null ? data.age : (meta.age || ''),
+          weight: data?.weight !== undefined && data?.weight !== null ? data.weight : (meta.weight || ''),
+          height: data?.height !== undefined && data?.height !== null ? data.height : (meta.height || ''),
+          gender: data?.gender || meta.gender || '',
+          conditions: data?.conditions || meta.conditions || ''
         }
+        setProfile(initialProfile)
+        setNameInput(initialProfile.name)
+        setAgeInput(initialProfile.age)
+        setWeightInput(initialProfile.weight)
+        setHeightInput(initialProfile.height)
+        setGenderInput(initialProfile.gender)
+        setConditionsInput(initialProfile.conditions)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -416,21 +445,55 @@ JSON Schema:
     setSaveMessage('')
     setSaveSuccess(true)
 
+    const updatedProfile = {
+      name: nameInput,
+      age: ageInput ? parseInt(ageInput) : '',
+      weight: weightInput ? parseFloat(weightInput) : '',
+      height: heightInput ? parseFloat(heightInput) : '',
+      gender: genderInput,
+      conditions: conditionsInput
+    }
+
     if (user.isDemo) {
-      setProfile({ name: nameInput })
-      setSaveMessage('Demo profile updated successfully! (Local state only)')
+      localStorage.setItem('arogyabot_demo_profile', JSON.stringify(updatedProfile))
+      setProfile(updatedProfile)
+      setSaveMessage('Demo profile updated successfully!')
       setSavingProfile(false)
       return
     }
 
     try {
-      const { error } = await supabase
+      // 1. Update profiles table (all fields)
+      const { error: dbError } = await supabase
         .from('profiles')
-        .upsert({ id: user.id, name: nameInput })
+        .upsert({ 
+          id: user.id, 
+          name: nameInput,
+          age: ageInput ? parseInt(ageInput) : null,
+          weight: weightInput ? parseFloat(weightInput) : null,
+          height: heightInput ? parseFloat(heightInput) : null,
+          gender: genderInput || null,
+          conditions: conditionsInput || null
+        })
 
-      if (error) throw error
-      setProfile({ name: nameInput })
-      setSaveMessage('Profile name updated successfully!')
+      if (dbError) throw dbError
+
+      // 2. Update user_metadata (all fields)
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          name: nameInput,
+          age: ageInput ? parseInt(ageInput) : null,
+          weight: weightInput ? parseFloat(weightInput) : null,
+          height: heightInput ? parseFloat(heightInput) : null,
+          gender: genderInput,
+          conditions: conditionsInput
+        }
+      })
+
+      if (authError) throw authError
+
+      setProfile(updatedProfile)
+      setSaveMessage('Profile updated successfully!')
     } catch (err) {
       console.error('Error saving profile:', err)
       setSaveSuccess(false)
@@ -1361,6 +1424,114 @@ JSON Schema:
                     <p className="text-xs text-slate-400 mt-1.5">
                       Your login email is managed by your authentication provider.
                     </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Age (Years)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      placeholder="e.g. 28"
+                      value={ageInput}
+                      onChange={(e) => setAgeInput(e.target.value)}
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Gender
+                    </label>
+                    <select
+                      value={genderInput}
+                      onChange={(e) => setGenderInput(e.target.value)}
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Height (in cm)
+                      </label>
+                      <input
+                        type="number"
+                        min="30"
+                        max="250"
+                        step="0.1"
+                        placeholder="e.g. 175"
+                        value={heightInput}
+                        onChange={(e) => setHeightInput(e.target.value)}
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Weight (in kg)
+                      </label>
+                      <input
+                        type="number"
+                        min="2"
+                        max="500"
+                        step="0.1"
+                        placeholder="e.g. 70"
+                        value={weightInput}
+                        onChange={(e) => setWeightInput(e.target.value)}
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const wVal = parseFloat(weightInput)
+                    const hVal = parseFloat(heightInput)
+                    if (isNaN(wVal) || isNaN(hVal) || hVal <= 0) return null
+                    const bmi = (wVal / Math.pow(hVal / 100, 2)).toFixed(1)
+                    let category = 'Normal'
+                    let color = 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/50'
+                    if (bmi < 18.5) {
+                      category = 'Underweight'
+                      color = 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50'
+                    } else if (bmi >= 25 && bmi < 30) {
+                      category = 'Overweight'
+                      color = 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50'
+                    } else if (bmi >= 30) {
+                      category = 'Obese'
+                      color = 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/50'
+                    }
+                    return (
+                      <div className={`p-4 border rounded-xl flex items-center justify-between transition-all duration-300 ${color}`}>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold uppercase tracking-wider opacity-85">Body Mass Index (BMI)</span>
+                          <span className="text-xl font-extrabold mt-0.5">{bmi}</span>
+                        </div>
+                        <span className="px-3 py-1 rounded-full text-xs font-bold border bg-white/20 dark:bg-black/20">
+                          {category}
+                        </span>
+                      </div>
+                    )
+                  })()}
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Existing Medical Conditions / Chronic Diseases
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. Hypertension, Type 2 Diabetes, Penicillin allergy (leave blank if none)"
+                      value={conditionsInput}
+                      onChange={(e) => setConditionsInput(e.target.value)}
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium resize-none"
+                    />
                   </div>
 
                   <button
