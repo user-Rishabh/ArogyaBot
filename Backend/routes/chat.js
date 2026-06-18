@@ -12,7 +12,45 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const botResponse = await getChatResponse(message, chatHistory)
+    let profile = null
+    if (sessionId) {
+      try {
+        const { data: sessionData } = await supabase
+          .from('chat_sessions')
+          .select('user_id')
+          .eq('id', sessionId)
+          .maybeSingle()
+
+        if (sessionData?.user_id) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', sessionData.user_id)
+            .maybeSingle()
+
+          let meta = {}
+          try {
+            const { data: { user: authUser } } = await supabase.auth.admin.getUser(sessionData.user_id)
+            meta = authUser?.user_metadata || {}
+          } catch (authErr) {
+            console.error('Error fetching auth user in backend:', authErr)
+          }
+
+          profile = {
+            name: profileData?.name || meta.name || '',
+            age: profileData?.age || meta.age || '',
+            weight: meta.weight || '',
+            height: meta.height || '',
+            gender: meta.gender || '',
+            conditions: meta.conditions || ''
+          }
+        }
+      } catch (err) {
+        console.error('Error loading session user profile in backend:', err)
+      }
+    }
+
+    const botResponse = await getChatResponse(message, chatHistory, profile)
 
     if (sessionId) {
       try {

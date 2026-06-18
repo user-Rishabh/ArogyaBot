@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { HeartPulse, Mail, Lock, Eye, EyeOff, AlertCircle, Zap, Sun, Moon } from 'lucide-react'
+import { HeartPulse, Mail, Lock, Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Login() {
-  const { login, loginAsDemo } = useAuth()
+  const { login, googleLogin } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -15,7 +15,13 @@ export default function Login() {
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
 
-  function handleDemo() { loginAsDemo(); navigate('/dashboard') }
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin()
+    } catch (err) {
+      setError(err.message || 'Google login failed')
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -32,7 +38,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 flex items-center justify-center px-4 py-12 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-indigo-100 to-amber-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 flex items-center justify-center px-4 py-12 relative overflow-hidden transition-colors duration-300">
       {/* Theme toggle — top right */}
       <button
         onClick={toggleTheme}
@@ -43,8 +49,10 @@ export default function Login() {
       </button>
 
       {/* Background blobs */}
-      <div className="absolute top-[-60px] left-[-60px] w-80 h-80 bg-indigo-300 dark:bg-indigo-700 rounded-full blur-3xl opacity-30 z-0 animate-blob-float" />
-      <div className="absolute bottom-[-40px] right-[-40px] w-72 h-72 bg-amber-200 dark:bg-amber-700 rounded-full blur-3xl opacity-30 z-0 animate-blob-float animation-delay-2000" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-10 -left-10 w-96 h-96 bg-indigo-400 dark:bg-indigo-700 rounded-full blur-3xl opacity-40 z-0 animate-blob-float" />
+        <div className="absolute -top-10 -right-10 w-96 h-96 bg-amber-300 dark:bg-amber-700 rounded-full blur-3xl opacity-40 z-0 animate-blob-float animation-delay-2000" />
+      </div>
 
       <div className="relative z-10 w-full max-w-md animate-custom-slide-up">
         {/* Logo */}
@@ -52,30 +60,12 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-700 mb-4 shadow-sm">
             <HeartPulse className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Welcome back</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Sign in to your ArogyaBot account</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
+            Welcome to <span className="bg-gradient-to-r from-indigo-600 to-amber-500 bg-clip-text text-transparent">ArogyaBot</span>
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Sign in to your account</p>
         </div>
 
-        {/* Demo Banner */}
-        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-5 mb-4 shadow-sm transition-colors duration-300">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5">Try without signing up</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Explore all features instantly — no account required.</p>
-              <button
-                id="login-demo-btn"
-                type="button"
-                onClick={handleDemo}
-                className="inline-flex items-center justify-center gap-2 w-full min-h-[44px] text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 hover:scale-105 shadow-sm"
-              >
-                <Zap className="w-4 h-4" /> Launch Demo Mode
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Login Card */}
         <div className="bg-white dark:bg-slate-800 shadow-xl rounded-2xl p-8 border border-indigo-50 dark:border-slate-700 transition-colors duration-300">
@@ -84,6 +74,18 @@ export default function Login() {
               <AlertCircle className="w-4 h-4 shrink-0" /> {error}
             </div>
           )}
+
+          <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <span className="text-xs text-slate-400 font-medium">OR</span>
+            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+          </div>
+
           <form id="login-form" onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email address</label>
@@ -112,7 +114,7 @@ export default function Login() {
             </div>
             <button
               id="login-submit-btn" type="submit" disabled={loading}
-              className="inline-flex items-center justify-center w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm hover:scale-105 transition-all duration-300 inline-flex items-center justify-center w-full py-3.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (
                 <span className="flex items-center gap-2 justify-center">

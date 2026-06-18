@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -12,16 +12,10 @@ const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health 
 
 function FadeIn({ children, className = '' }) {
   const [isVisible, setIsVisible] = useState(false)
-  const ref = useState(() => {
-    if (typeof document !== 'undefined') {
-      const el = document.createElement('div')
-      return { current: el }
-    }
-    return { current: null }
-  })[0]
+  const domRef = useRef(null)
 
   useEffect(() => {
-    const node = ref.current
+    const node = domRef.current
     if (!node) return
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(node) } },
@@ -33,7 +27,7 @@ function FadeIn({ children, className = '' }) {
 
   return (
     <div
-      ref={ref}
+      ref={domRef}
       className={`transition-all duration-1000 ease-out transform ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       } ${className}`}
