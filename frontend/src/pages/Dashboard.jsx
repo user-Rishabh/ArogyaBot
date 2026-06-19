@@ -706,6 +706,7 @@ JSON Schema:
                 { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
                 { id: 'suggestions', label: 'Medicine Suggester', icon: Pill },
                 { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
+                { id: 'tips', label: 'Tips & Guidelines', icon: Info },
                 { id: 'tools', label: 'Health Tools', icon: Activity },
                 { id: 'care', label: 'Care Finder', icon: MapPin },
                 { id: 'tips', label: 'Tips & Guidelines', icon: Info },
