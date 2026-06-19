@@ -804,7 +804,32 @@ const displayName = profile?.name || formatName(user?.email)
                 </div>
               </div>
 
-              {/* Quick Stats Row */}
+              <div
+  
+  className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-slate-800 dark:to-slate-900 border border-orange-200 dark:border-slate-700 rounded-2xl p-6 mb-4 animate-card-fade-in opacity-0"
+  style={{ animationDelay: '25ms' }}
+>
+  <div className="flex items-start gap-4">
+    <div className="text-4xl">🌡️</div>
+
+    <div>
+      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+        Daily Health Advisory
+      </h2>
+
+      <p className="text-slate-600 dark:text-slate-300 mb-4">
+        Today's health advisory based on seasonal conditions. Stay hydrated and maintain healthy habits.
+      </p>
+
+      <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+        <p>💧 Drink 2.5–3 litres of water throughout the day</p>
+        <p>🥒 Include cucumber and watermelon in meals</p>
+        <p>🥥 Coconut water can help maintain hydration</p>
+        <p>⚠️ Avoid prolonged exposure to direct sunlight</p>
+      </div>
+    </div>
+  </div>
+</div>
               <div className="grid grid-cols-3 gap-4 animate-card-fade-in opacity-0" style={{ animationDelay: '25ms' }}>
                 {[
                   { label: 'Total Chats', value: sessions.length, bg: 'from-blue-50 to-indigo-50 dark:from-slate-800/40 dark:to-slate-800/60 text-indigo-600 dark:text-indigo-400', border: 'border-t-4 border-indigo-600 dark:border-t-indigo-500' },
