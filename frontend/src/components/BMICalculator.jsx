@@ -156,7 +156,7 @@ export default function BMICalculator({ profile }) {
   const healthTips = getDailyHealthTips(category)
 
   return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm transition-all duration-300">
+    <div className="bg-white dark:bg-slate-800 border-l-4 border-indigo-500 border-y border-r border-slate-100 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm transition-all duration-300">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
           <Scale className="w-5 h-5 text-white" />
@@ -210,7 +210,7 @@ export default function BMICalculator({ profile }) {
 
           <button
             type="submit"
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-98"
+            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200 active:scale-98"
           >
             Calculate BMI
           </button>

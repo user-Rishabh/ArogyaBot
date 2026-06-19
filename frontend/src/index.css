@@ -66,6 +66,18 @@
 .dot-2 { animation-delay: 0.2s;  }
 .dot-3 { animation-delay: 0.4s;  }
 
+/* Gradient background shifting animation */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% auto;
+  animation: gradientShift 8s ease infinite;
+}
+
 /* Custom load animations and blob motion */
 @keyframes customFadeIn {
   from {

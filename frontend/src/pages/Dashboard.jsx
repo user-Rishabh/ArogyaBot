@@ -625,9 +625,9 @@ JSON Schema:
   }
 
   const tips = [
-    { icon: Sparkles, label: 'Describe your symptoms', hint: 'Be specific — mention duration, severity, and location.', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-950/50' },
-    { icon: Clock, label: 'Share your history', hint: 'Mention any existing conditions or medications.', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-950/50' },
-    { icon: MessageCircle, label: 'Ask follow-ups', hint: 'ArogyaBot remembers context within your session.', color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-100 dark:bg-violet-950/50' },
+    { icon: Sparkles, label: 'Describe your symptoms', hint: 'Be specific — mention duration, severity, and location.', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-950/50', gradient: 'from-indigo-50 to-indigo-100/30 dark:from-slate-800 dark:to-indigo-950/10 border-indigo-100/30 dark:border-indigo-950/40' },
+    { icon: Clock, label: 'Share your history', hint: 'Mention any existing conditions or medications.', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-950/50', gradient: 'from-amber-50 to-amber-100/30 dark:from-slate-800 dark:to-amber-950/10 border-amber-100/30 dark:border-amber-950/40' },
+    { icon: MessageCircle, label: 'Ask follow-ups', hint: 'ArogyaBot remembers context within your session.', color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-100 dark:bg-violet-950/50', gradient: 'from-violet-50 to-violet-100/30 dark:from-slate-800 dark:to-violet-950/10 border-violet-100/30 dark:border-violet-950/40' },
   ]
 
   return (
@@ -649,9 +649,9 @@ JSON Schema:
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/40 rounded-lg border border-indigo-100 dark:border-indigo-800 max-w-[200px]">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg border border-indigo-200 dark:border-indigo-900 max-w-[200px] text-indigo-700 dark:text-indigo-300">
               <User className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
-              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium truncate max-w-[140px]" title={displayName}>
+              <span className="text-sm font-medium truncate max-w-[140px]" title={displayName}>
                 {loading ? '…' : displayName}
               </span>
             </div>
@@ -670,7 +670,7 @@ JSON Schema:
             <button
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
-              className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors duration-200"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -689,14 +689,14 @@ JSON Schema:
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Navigation Sidebar */}
-          <div className="w-full lg:w-64 lg:min-w-[220px] shrink-0 flex flex-col justify-between lg:min-h-[560px] bg-gradient-to-b from-white to-indigo-50/30 dark:from-slate-800 dark:to-slate-900 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-4 rounded-2xl border border-indigo-100 dark:border-slate-700 shadow-md">
+          <div className="w-full lg:w-64 lg:min-w-[220px] shrink-0 flex flex-col justify-between lg:min-h-[560px] bg-gradient-to-b from-indigo-600 to-violet-700 p-4 rounded-2xl border border-white/10 shadow-xl">
             
             {/* Top Section */}
             <div className="flex lg:flex-col flex-row flex-wrap gap-1 overflow-x-auto lg:overflow-x-visible scrollbar-hide w-full flex-1">
               {/* ArogyaBot mini logo */}
-              <div className="hidden lg:flex items-center gap-2 px-3 pb-3 border-b border-indigo-100/50 dark:border-slate-700/50 mb-3 w-full">
-                <HeartPulse className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <span className="font-display font-bold text-sm text-indigo-600 dark:text-indigo-400">
+              <div className="hidden lg:flex items-center gap-2 px-3 pb-3 border-b border-white/20 mb-3 w-full">
+                <HeartPulse className="w-5 h-5 text-white shrink-0" />
+                <span className="font-display font-bold text-sm text-white">
                   ArogyaBot
                 </span>
               </div>
@@ -724,17 +724,17 @@ JSON Schema:
                     }}
                     className={`flex items-center gap-3 py-3 px-4 rounded-xl font-medium text-sm transition-all w-full text-left ${
                       isActive
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-xl transition-all'
+                        ? 'bg-white/20 text-white font-semibold rounded-xl backdrop-blur-sm'
+                        : 'text-white/70 hover:bg-white/10 hover:text-white rounded-xl'
                     }`}
                   >
-                    <Icon className="w-[18px] h-[18px] shrink-0" />
+                    <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-white' : 'text-white/60'}`} />
                     <span className="flex-1">{tab.label}</span>
                     {tab.count !== undefined && tab.count > 0 && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all ${
                         isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
+                          ? 'bg-white/30 text-white'
+                          : 'bg-white/15 text-white/90'
                       }`}>
                         {tab.count}
                       </span>
@@ -745,7 +745,7 @@ JSON Schema:
             </div>
 
             {/* Pinned Bottom: Profile Settings */}
-            <div className="mt-auto pt-3 border-t border-indigo-100/50 dark:border-slate-755 w-full">
+            <div className="mt-auto pt-3 border-t border-white/20 w-full">
               {(() => {
                 const isActive = activeTab === 'profile'
                 return (
@@ -756,11 +756,11 @@ JSON Schema:
                     }}
                     className={`flex items-center gap-3 py-3 px-4 rounded-xl font-medium text-sm transition-all w-full text-left ${
                       isActive
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-xl transition-all'
+                        ? 'bg-white/20 text-white font-semibold rounded-xl backdrop-blur-sm'
+                        : 'text-white/60 hover:bg-white/10 hover:text-white rounded-xl'
                     }`}
                   >
-                    <User className="w-[18px] h-[18px] shrink-0" />
+                    <User className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-white' : 'text-white/60'}`} />
                     <span>Profile Settings</span>
                   </button>
                 )
@@ -776,8 +776,10 @@ JSON Schema:
           {/* Home Tab */}
           {activeTab === 'overview' && (
             <div className="animate-tab-fade-in space-y-8">
-              {/* Hero Welcome Banner with animated gradient */}
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-amber-500 bg-[length:200%_auto] animate-gradient p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              {/* Hero Welcome Banner with vivid gradient */}
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-500 to-amber-500 p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+                {/* Subtle dot pattern overlay */}
+                <div className="absolute inset-0 opacity-15 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.15) 1.5px, transparent 1.5px)', backgroundSize: '16px 16px' }} />
                 {/* Background decorative glows */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
@@ -806,9 +808,9 @@ JSON Schema:
               {/* Quick Stats Row */}
               <div className="grid grid-cols-3 gap-4 animate-card-fade-in opacity-0" style={{ animationDelay: '25ms' }}>
                 {[
-                  { label: 'Total Chats', value: sessions.length, bg: 'from-blue-50 to-indigo-50 dark:from-slate-800/40 dark:to-slate-800/60 text-indigo-600 dark:text-indigo-400', border: 'border-l-4 border-l-indigo-600 dark:border-l-indigo-550' },
-                  { label: 'Last Active', value: sessions.length > 0 ? getRelativeTime(sessions[0]?.created_at || sessions[0]?.createdAt) : 'No chats', bg: 'from-amber-50 to-orange-50 dark:from-slate-800/40 dark:to-slate-800/60 text-amber-600 dark:text-amber-400', border: 'border-l-4 border-l-amber-500' },
-                  { label: 'Language', value: 'English (EN)', bg: 'from-emerald-50 to-teal-50 dark:from-slate-800/40 dark:to-slate-800/60 text-emerald-600 dark:text-emerald-400', border: 'border-l-4 border-l-green-500 dark:border-l-green-600' }
+                  { label: 'Total Chats', value: sessions.length, bg: 'from-blue-50 to-indigo-50 dark:from-slate-800/40 dark:to-slate-800/60 text-indigo-600 dark:text-indigo-400', border: 'border-t-4 border-indigo-600 dark:border-t-indigo-500' },
+                  { label: 'Last Active', value: sessions.length > 0 ? getRelativeTime(sessions[0]?.created_at || sessions[0]?.createdAt) : 'No chats', bg: 'from-amber-50 to-orange-50 dark:from-slate-800/40 dark:to-slate-800/60 text-amber-600 dark:text-amber-400', border: 'border-t-4 border-amber-500' },
+                  { label: 'Language', value: 'English (EN)', bg: 'from-emerald-50 to-teal-50 dark:from-slate-800/40 dark:to-slate-800/60 text-emerald-600 dark:text-emerald-400', border: 'border-t-4 border-green-500 dark:border-green-600' }
                 ].map((stat) => (
                   <div key={stat.label} className={`bg-gradient-to-br ${stat.bg} ${stat.border} border border-indigo-100/30 dark:border-slate-800 p-4 rounded-2xl flex flex-col justify-center`}>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">{stat.label}</span>
@@ -956,9 +958,9 @@ JSON Schema:
                 {tips.map((t) => (
                   <div
                     key={t.label}
-                    className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200"
+                    className={`bg-gradient-to-br ${t.gradient} border hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200`}
                   >
-                    <div className={`w-10 h-10 rounded-xl ${t.bg} flex items-center justify-center mb-3`}>
+                    <div className={`w-10 h-10 rounded-xl ${t.bg} flex items-center justify-center mb-3 shadow-inner`}>
                       <t.icon className={`w-5 h-5 ${t.color}`} />
                     </div>
                     <p className="text-slate-900 dark:text-white font-display font-semibold text-base mb-1.5">{t.label}</p>
@@ -1037,8 +1039,9 @@ JSON Schema:
                     /* Location Allowed: List with nearby hospitals */
                     <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-amber-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
-                          <MapPin className="w-5 h-5 text-white" />
+                        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-amber-500 flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
+                          <span className="absolute inline-flex h-full w-full rounded-xl bg-indigo-400 opacity-75 animate-ping pointer-events-none" />
+                          <MapPin className="w-5 h-5 text-white relative z-10" />
                         </div>
                         <div>
                           <h3 className="text-xl font-display font-semibold text-slate-900 dark:text-white tracking-tight">Nearby Hospitals</h3>
@@ -1097,8 +1100,9 @@ JSON Schema:
                     /* Location Denied: Manual Search Fallback */
                     <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 md:p-8 shadow-sm space-y-6 animate-card-fade-in opacity-0">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow-md shadow-rose-500/20">
-                          <MapPin className="w-5 h-5 text-white" />
+                        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow-md shadow-rose-500/20 shrink-0">
+                          <span className="absolute inline-flex h-full w-full rounded-xl bg-rose-400 opacity-75 animate-ping pointer-events-none" />
+                          <MapPin className="w-5 h-5 text-white relative z-10" />
                         </div>
                         <div>
                           <h3 className="text-xl font-display font-semibold text-slate-900 dark:text-white tracking-tight">Hospital Finder</h3>
@@ -1108,7 +1112,10 @@ JSON Schema:
 
                       <div className="p-8 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center max-w-xl mx-auto bg-slate-50/30 dark:bg-slate-900/30">
                         <h4 className="text-lg font-display font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                          <MapPin className="w-5 h-5 text-red-500 shrink-0" />
+                          <div className="relative flex items-center justify-center">
+                            <span className="absolute inline-flex h-4 w-4 rounded-full bg-red-400 opacity-75 animate-ping pointer-events-none" />
+                            <MapPin className="w-5 h-5 text-red-500 shrink-0 relative z-10" />
+                          </div>
                           Manual City Search
                         </h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
@@ -1124,18 +1131,21 @@ JSON Schema:
                           }}
                           className="flex flex-col gap-3 w-full"
                         >
-                          <input
-                            type="text"
-                            placeholder="e.g. New Delhi, Mumbai, Lucknow"
-                            value={manualCity}
-                            onChange={(e) => setManualCity(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
-                            required
-                          />
+                          <div className="relative w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
+                            <input
+                              type="text"
+                              placeholder="e.g. New Delhi, Mumbai, Lucknow"
+                              value={manualCity}
+                              onChange={(e) => setManualCity(e.target.value)}
+                              className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-base font-medium"
+                              required
+                            />
+                          </div>
                           <button
                             type="submit"
                             disabled={!manualCity.trim()}
-                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 active:scale-98 text-sm"
+                            className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all duration-200 active:scale-98 text-sm shadow-md"
                           >
                             Search
                           </button>
@@ -1325,7 +1335,7 @@ JSON Schema:
                         }
                         className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
                           isSelected
-                            ? 'bg-green-600 text-white border-transparent shadow-sm'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-transparent shadow-md'
                             : 'border border-green-200 dark:border-green-900/50 text-green-700 dark:text-green-400 bg-white dark:bg-slate-900 hover:bg-green-50 dark:hover:bg-green-950/20'
                         }`}
                       >
@@ -1356,7 +1366,7 @@ JSON Schema:
                         }
                         className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
                           isSelected
-                            ? 'bg-green-600 text-white border-transparent shadow-sm'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-transparent shadow-md'
                             : 'border border-green-200 dark:border-green-900/50 text-green-700 dark:text-green-400 bg-white dark:bg-slate-900 hover:bg-green-50 dark:hover:bg-green-950/20'
                         }`}
                       >
@@ -1508,9 +1518,9 @@ Diet: ${dietData.dietType}
             <div className="animate-tab-fade-in max-w-3xl mx-auto space-y-4">
               
               {/* SECTION 1 - Header card (full width) */}
-              <div className="bg-gradient-to-r from-indigo-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">💊</span>
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl shrink-0">💊</span>
                   <h2 className="text-2xl font-display font-extrabold text-indigo-600 dark:text-indigo-400">
                     AI Medicine Suggester
                   </h2>
@@ -1522,7 +1532,7 @@ Diet: ${dietData.dietType}
 
               {/* SECTION 2 - Symptom chips (full width card) */}
               <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-3">
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                   Quick Symptoms
                 </label>
                 <div className="flex flex-wrap gap-3">
@@ -1535,7 +1545,7 @@ Diet: ${dietData.dietType}
                         onClick={() => handleChipClick(chip)}
                         className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border ${
                           isSelected
-                            ? 'bg-indigo-600 text-white border-transparent shadow-sm'
+                            ? 'bg-indigo-600 text-white border-transparent shadow-md'
                             : 'border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-455 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/20'
                         }`}
                       >
@@ -1550,7 +1560,7 @@ Diet: ${dietData.dietType}
               <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-6">
                 {/* Describe Symptoms textarea */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                     Describe Symptoms
                   </label>
                   <textarea
@@ -1859,7 +1869,7 @@ Diet: ${dietData.dietType}
                         placeholder="e.g. Rishabh Mishra"
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                        className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-650 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
                       />
                     </div>
                     <p className="text-xs text-slate-400 mt-1.5">
@@ -1896,7 +1906,7 @@ Diet: ${dietData.dietType}
                       placeholder="e.g. 28"
                       value={ageInput}
                       onChange={(e) => setAgeInput(e.target.value)}
-                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-650 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
                     />
                   </div>
 
@@ -1907,7 +1917,7 @@ Diet: ${dietData.dietType}
                     <select
                       value={genderInput}
                       onChange={(e) => setGenderInput(e.target.value)}
-                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-650 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
                     >
                       <option value="">Select Gender</option>
                       <option value="Male">Male</option>
@@ -1930,7 +1940,7 @@ Diet: ${dietData.dietType}
                         placeholder="e.g. 175"
                         value={heightInput}
                         onChange={(e) => setHeightInput(e.target.value)}
-                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-650 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
                       />
                     </div>
                     <div>
@@ -1945,7 +1955,7 @@ Diet: ${dietData.dietType}
                         placeholder="e.g. 70"
                         value={weightInput}
                         onChange={(e) => setWeightInput(e.target.value)}
-                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-650 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
                       />
                     </div>
                   </div>
@@ -1989,7 +1999,7 @@ Diet: ${dietData.dietType}
                       placeholder="e.g. Hypertension, Type 2 Diabetes, Penicillin allergy (leave blank if none)"
                       value={conditionsInput}
                       onChange={(e) => setConditionsInput(e.target.value)}
-                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium resize-none"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-650 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium resize-none"
                     />
                   </div>
 
