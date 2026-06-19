@@ -1,10 +1,11 @@
 require('dotenv').config()
-const whatsappRoutes = require('./routes/whatsapp')
 const express = require('express')
 const cors = require('cors')
 
-
 const chatRoutes = require('./routes/chat')
+const whatsappRoutes = require('./routes/whatsapp')
+const dietRoutes = require('./routes/diet')
+const suggestionsRoutes = require('./routes/suggestions')
 
 const app = express()
 
@@ -21,23 +22,15 @@ app.options(/.*/, cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Routes
-const suggestionsRoutes = require('./routes/suggestions')
 app.use('/api/chat', chatRoutes)
-app.use('/api/whatsapp', whatsappRoutes) 
-app.use('/api/diet', require('./routes/diet'))
 app.use('/api/whatsapp', whatsappRoutes)
+app.use('/api/diet', dietRoutes)
 app.use('/api/suggest-medicines', suggestionsRoutes)
-
-const { modelName } = require('./utils/claudeClient')
 
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ArogyaBot backend is running!',
-    model: modelName,
-    hasApiKey: !!process.env.GOOGLE_API_KEY,
-    apiKeyLength: process.env.GOOGLE_API_KEY ? process.env.GOOGLE_API_KEY.length : 0,
-    apiKeyPrefix: process.env.GOOGLE_API_KEY ? process.env.GOOGLE_API_KEY.substring(0, 5) : ''
+    hasApiKey: !!process.env.GOOGLE_API_KEY
   })
 })
 
