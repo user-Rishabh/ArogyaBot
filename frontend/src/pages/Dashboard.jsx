@@ -596,10 +596,38 @@ JSON Schema:
     }
   }
 
+  const handleDetectLocation = () => {
+    setIsLocDetecting(true)
+    setLocAllowed(null)
+    setLocCoords({ lat: null, lng: null })
+    setSearchCity('')
+    setManualCity('')
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocCoords({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        })
+        setLocAllowed(true)
+        setIsLocDetecting(false)
+      },
+      (err) => {
+        console.error('Geolocation error:', err)
+        setLocAllowed(false)
+        setIsLocDetecting(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+
+    setShowAmbuAnimation(true)
+    setTimeout(() => setShowAmbuAnimation(false), 2000)
+  }
+
   const tips = [
-    { icon: Sparkles, label: 'Describe your symptoms', hint: 'Be specific — mention duration, severity, and location.', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-550/10 dark:bg-indigo-950/50' },
-    { icon: Clock, label: 'Share your history', hint: 'Mention any existing conditions or medications.', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-550/10 dark:bg-amber-950/50' },
-    { icon: MessageCircle, label: 'Ask follow-ups', hint: 'ArogyaBot remembers context within your session.', color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-550/10 dark:bg-violet-950/50' },
+    { icon: Sparkles, label: 'Describe your symptoms', hint: 'Be specific — mention duration, severity, and location.', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-950/50' },
+    { icon: Clock, label: 'Share your history', hint: 'Mention any existing conditions or medications.', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-950/50' },
+    { icon: MessageCircle, label: 'Ask follow-ups', hint: 'ArogyaBot remembers context within your session.', color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-100 dark:bg-violet-950/50' },
   ]
 
   return (
@@ -689,31 +717,7 @@ JSON Schema:
                     key={tab.id}
                     onClick={() => {
                       if (tab.id === 'care' && activeTab !== 'care') {
-                        setIsLocDetecting(true)
-                        setLocAllowed(null)
-                        setLocCoords({ lat: null, lng: null })
-                        setSearchCity('')
-                        setManualCity('')
-
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            setLocCoords({
-                              lat: position.coords.latitude,
-                              lng: position.coords.longitude
-                            })
-                            setLocAllowed(true)
-                            setIsLocDetecting(false)
-                          },
-                          (err) => {
-                            console.error('Geolocation error:', err)
-                            setLocAllowed(false)
-                            setIsLocDetecting(false)
-                          },
-                          { enableHighAccuracy: true, timeout: 10000 }
-                        )
-
-                        setShowAmbuAnimation(true)
-                        setTimeout(() => setShowAmbuAnimation(false), 2000)
+                        handleDetectLocation()
                       }
                       setActiveTab(tab.id)
                       setSaveMessage('')
@@ -773,7 +777,7 @@ JSON Schema:
           {activeTab === 'overview' && (
             <div className="animate-tab-fade-in space-y-8">
               {/* Hero Welcome Banner with animated gradient */}
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-amber-500 bg-[length:200%_auto] animate-gradient p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-amber-500 bg-[length:200%_auto] animate-gradient p-8 md:p-12 text-white shadow-xl shadow-indigo-500/20 animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
                 {/* Background decorative glows */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
@@ -802,13 +806,13 @@ JSON Schema:
               {/* Quick Stats Row */}
               <div className="grid grid-cols-3 gap-4 animate-card-fade-in opacity-0" style={{ animationDelay: '25ms' }}>
                 {[
-                  { label: 'Total Chats', value: sessions.length, bg: 'from-blue-50 to-indigo-50 dark:from-slate-800/40 dark:to-slate-800/60 text-indigo-600 dark:text-indigo-400' },
-                  { label: 'Last Active', value: sessions.length > 0 ? getRelativeTime(sessions[0]?.created_at || sessions[0]?.createdAt) : 'No chats', bg: 'from-amber-50 to-orange-50 dark:from-slate-800/40 dark:to-slate-800/60 text-amber-600 dark:text-amber-400' },
-                  { label: 'Language', value: 'English (EN)', bg: 'from-emerald-50 to-teal-50 dark:from-slate-800/40 dark:to-slate-800/60 text-emerald-600 dark:text-emerald-400' }
+                  { label: 'Total Chats', value: sessions.length, bg: 'from-blue-50 to-indigo-50 dark:from-slate-800/40 dark:to-slate-800/60 text-indigo-600 dark:text-indigo-400', border: 'border-l-4 border-l-indigo-600 dark:border-l-indigo-550' },
+                  { label: 'Last Active', value: sessions.length > 0 ? getRelativeTime(sessions[0]?.created_at || sessions[0]?.createdAt) : 'No chats', bg: 'from-amber-50 to-orange-50 dark:from-slate-800/40 dark:to-slate-800/60 text-amber-600 dark:text-amber-400', border: 'border-l-4 border-l-amber-500' },
+                  { label: 'Language', value: 'English (EN)', bg: 'from-emerald-50 to-teal-50 dark:from-slate-800/40 dark:to-slate-800/60 text-emerald-600 dark:text-emerald-400', border: 'border-l-4 border-l-green-500 dark:border-l-green-600' }
                 ].map((stat) => (
-                  <div key={stat.label} className={`bg-gradient-to-br ${stat.bg} border border-indigo-100/30 dark:border-slate-800 p-4 rounded-2xl flex flex-col justify-center`}>
+                  <div key={stat.label} className={`bg-gradient-to-br ${stat.bg} ${stat.border} border border-indigo-100/30 dark:border-slate-800 p-4 rounded-2xl flex flex-col justify-center`}>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">{stat.label}</span>
-                    <span className="text-sm md:text-base font-extrabold text-slate-900 dark:text-white mt-0.5">{stat.value}</span>
+                    <span className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{stat.value}</span>
                   </div>
                 ))}
               </div>
@@ -873,8 +877,8 @@ JSON Schema:
                 </div>
               ) : sessions.length === 0 ? (
                 <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-8 text-center py-12 shadow-sm animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
-                  <div className="w-16 h-16 bg-indigo-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageCircle className="w-8 h-8 text-indigo-500 dark:text-indigo-400" />
+                  <div className="w-20 h-20 bg-indigo-50 dark:bg-slate-950/60 rounded-full flex items-center justify-center mx-auto mb-4 ring-4 ring-indigo-100 dark:ring-indigo-900/30">
+                    <MessageCircle className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">No chats yet</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 max-w-sm mx-auto">
@@ -952,9 +956,11 @@ JSON Schema:
                 {tips.map((t) => (
                   <div
                     key={t.label}
-                    className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 shadow-sm"
+                    className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200"
                   >
-                    <t.icon className="w-6 h-6 text-indigo-500 dark:text-indigo-400 mb-3" />
+                    <div className={`w-10 h-10 rounded-xl ${t.bg} flex items-center justify-center mb-3`}>
+                      <t.icon className={`w-5 h-5 ${t.color}`} />
+                    </div>
                     <p className="text-slate-900 dark:text-white font-bold text-base mb-1.5">{t.label}</p>
                     <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{t.hint}</p>
                   </div>
@@ -972,7 +978,7 @@ JSON Schema:
                     { title: 'Medications List', desc: 'Provide a list of any current prescriptions, over-the-counter drugs, or natural supplements you are taking.' },
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
-                      <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shrink-0 text-xs mt-0.5">
+                      <span className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold shrink-0 text-xs mt-0.5">
                         {idx + 1}
                       </span>
                       <div>
@@ -1003,7 +1009,7 @@ JSON Schema:
               </div>
 
               <div className="animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
-                <BMICalculator />
+                <BMICalculator profile={profile} />
               </div>
             </div>
           )}
@@ -1089,20 +1095,20 @@ JSON Schema:
                     </div>
                   ) : (
                     /* Location Denied: Manual Search Fallback */
-                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 md:p-8 shadow-sm space-y-6 animate-card-fade-in opacity-0">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow-md shadow-rose-500/20">
                           <MapPin className="w-5 h-5 text-white" />
                         </div>
                         <div>
                           <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Hospital Finder</h3>
-                          <p className="text-red-500 dark:text-red-400 text-xs mt-0.5 font-bold">⚠️ Location access denied — search manually</p>
+                          <p className="text-red-500 dark:text-red-400 text-xs mt-0.5 font-bold">⚠️ Location access denied — search manually or allow access below</p>
                         </div>
                       </div>
 
-                      <div className="p-6 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center max-w-xl">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
-                          <Search className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                      <div className="p-8 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center max-w-xl mx-auto bg-slate-50/30 dark:bg-slate-900/30">
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-red-500 shrink-0" />
                           Manual City Search
                         </h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
@@ -1116,24 +1122,46 @@ JSON Schema:
                               setSearchCity(manualCity.trim())
                             }
                           }}
-                          className="flex gap-3"
+                          className="flex flex-col gap-3 w-full"
                         >
                           <input
                             type="text"
                             placeholder="e.g. New Delhi, Mumbai, Lucknow"
                             value={manualCity}
                             onChange={(e) => setManualCity(e.target.value)}
-                            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
                             required
                           />
                           <button
                             type="submit"
                             disabled={!manualCity.trim()}
-                            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 active:scale-98 text-sm"
+                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 active:scale-98 text-sm"
                           >
                             Search
                           </button>
                         </form>
+                      </div>
+
+                      {/* "Or" Divider */}
+                      <div className="relative flex items-center justify-center max-w-xl mx-auto py-2">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                          <div className="w-full border-t border-slate-200 dark:border-slate-700/80"></div>
+                        </div>
+                        <div className="relative bg-white dark:bg-slate-800 px-4 text-xs font-bold text-slate-400 uppercase tracking-widest z-10">
+                          OR
+                        </div>
+                      </div>
+
+                      {/* Allow Location Access button */}
+                      <div className="flex justify-center pb-2">
+                        <button
+                          type="button"
+                          onClick={handleDetectLocation}
+                          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-850 text-white text-sm font-semibold rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2"
+                        >
+                          <MapPin className="w-4 h-4 text-white" />
+                          Allow Location Access
+                        </button>
                       </div>
 
                       {searchCity && (
@@ -1200,10 +1228,13 @@ JSON Schema:
           <div className="animate-tab-fade-in max-w-3xl mx-auto space-y-4">
             
             {/* HEADER CARD */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
-              <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-650 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300">
-                🥗 AI Diet Planner
-              </h2>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🥗</span>
+                <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-650 dark:from-green-400 dark:to-emerald-400">
+                  AI Diet Planner
+                </h2>
+              </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-2">
                 Get a personalized meal plan based on your body metrics and health goals
               </p>
@@ -1341,7 +1372,7 @@ JSON Schema:
                 type="button"
                 onClick={generateDietPlan}
                 disabled={dietLoading || !dietData.age || !dietData.weight || !dietData.height}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-xl text-sm font-extrabold shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 disabled:from-green-400 disabled:to-emerald-400 text-white rounded-xl text-sm font-extrabold shadow-md transition-all flex items-center justify-center gap-2"
               >
                 {dietLoading ? (
                   <>
@@ -1478,10 +1509,12 @@ Diet: ${dietData.dietType}
               
               {/* SECTION 1 - Header card (full width) */}
               <div className="bg-gradient-to-r from-indigo-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
-                <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-650 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300 flex items-center gap-2">
-                  <Pill className="w-6 h-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                  AI Medicine Suggester
-                </h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">💊</span>
+                  <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300">
+                    AI Medicine Suggester
+                  </h2>
+                </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-2">
                   Enter your symptoms, select your preferred system of medicine, and provide your age to get tailored medicine suggestions and dosage guidelines.
                 </p>
@@ -1492,7 +1525,7 @@ Diet: ${dietData.dietType}
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Quick Symptoms
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {['Headache', 'Fever', 'Cough', 'Cold', 'Body Ache', 'Nausea', 'Fatigue', 'Back Pain'].map((chip) => {
                     const isSelected = symptoms.toLowerCase().includes(chip.toLowerCase())
                     return (
@@ -1503,7 +1536,7 @@ Diet: ${dietData.dietType}
                         className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border ${
                           isSelected
                             ? 'bg-indigo-600 text-white border-transparent shadow-sm'
-                            : 'border border-indigo-200 text-indigo-600 bg-white dark:bg-slate-900 dark:text-indigo-400 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-850/60'
+                            : 'border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-455 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/20'
                         }`}
                       >
                         {chip}
@@ -1525,7 +1558,7 @@ Diet: ${dietData.dietType}
                     placeholder="e.g. High fever, headache, body ache for 2 days"
                     value={symptoms}
                     onChange={(e) => setSymptoms(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium resize-none min-h-24"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium resize-none min-h-32"
                   />
                 </div>
 
@@ -1788,7 +1821,7 @@ Diet: ${dietData.dietType}
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Customize how ArogyaBot addresses you.</p>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-8 shadow-sm max-w-2xl animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
+              <div className="bg-indigo-50/40 dark:bg-slate-800/50 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-8 shadow-sm max-w-2xl animate-card-fade-in opacity-0" style={{ animationDelay: '0ms' }}>
                 {/* Avatar circle with user initials */}
                 <div className="flex flex-col items-center mb-8 pb-6 border-b border-slate-100 dark:border-slate-700/50">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600 to-amber-500 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-indigo-500/20 ring-4 ring-indigo-50 dark:ring-slate-900">

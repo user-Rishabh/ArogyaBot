@@ -1,12 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Scale, Info, Sparkles, Dumbbell, Heart, Activity, Timer } from 'lucide-react'
 
-export default function BMICalculator() {
+export default function BMICalculator({ profile }) {
   const [height, setHeight] = useState('')
   const [weight, setWeight] = useState('')
   const [bmi, setBmi] = useState(null)
   const [category, setCategory] = useState('')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (profile) {
+      if (profile.height !== undefined && profile.height !== null && profile.height !== '') {
+        setHeight(profile.height.toString())
+      }
+      if (profile.weight !== undefined && profile.weight !== null && profile.weight !== '') {
+        setWeight(profile.weight.toString())
+      }
+    }
+  }, [profile])
 
   const calculateBmi = (e) => {
     e.preventDefault()
@@ -265,7 +276,7 @@ export default function BMICalculator() {
             <div className="text-center py-8 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center">
               <Info className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-3" />
               <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[240px] leading-relaxed">
-                Enter your height and weight, then click **Calculate BMI** to view results.
+                Enter your height and weight, then click Calculate BMI to view results.
               </p>
             </div>
           )}
