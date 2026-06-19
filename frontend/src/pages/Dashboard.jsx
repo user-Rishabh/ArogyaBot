@@ -125,6 +125,7 @@ export default function Dashboard() {
 
 const [dietPlan, setDietPlan] = useState(null)
 const [dietLoading, setDietLoading] = useState(false)
+const [weather, setWeather] = useState(null)
 
   // Geolocation and Care Finder states
   const [locCoords, setLocCoords] = useState({ lat: null, lng: null })
@@ -178,6 +179,32 @@ const [dietLoading, setDietLoading] = useState(false)
       }
     }
   }
+  useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const lat = position.coords.latitude
+        const lon = position.coords.longitude
+
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${import.meta.env.VITE_WEATHER_API_KEY}`
+        )
+
+        const data = await response.json()
+
+        setWeather({
+          city: data.name,
+          temp: Math.round(data.main.temp)
+        })
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    (error) => {
+      console.error('Location error:', error)
+    }
+  )
+}, [])
 
   const handleShareWhatsApp = () => {
     if (!suggestionsResult) return
@@ -810,16 +837,33 @@ const displayName = profile?.name || formatName(user?.email)
   style={{ animationDelay: '25ms' }}
 >
   <div className="flex items-start gap-4">
-    <div className="text-4xl">🌡️</div>
+   <div className="text-center">
+  <div className="text-4xl">🌡️</div>
+
+  {weather && (
+    <div className="mt-2 text-sm font-semibold text-orange-500">
+      {weather.temp}°C
+    </div>
+  )}
+</div>
 
     <div>
       <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
         Daily Health Advisory
       </h2>
+      
 
-      <p className="text-slate-600 dark:text-slate-300 mb-4">
-        Today's health advisory based on seasonal conditions. Stay hydrated and maintain healthy habits.
-      </p>
+{weather && (
+  <p className="font-semibold text-orange-500 mb-2">
+    📍 {weather.city} • {weather.temp}°C
+  </p>
+)}
+
+<p className="text-slate-600 dark:text-slate-300 mb-4">
+  Today's health advisory based on seasonal conditions. Stay hydrated and maintain healthy habits.
+</p>
+
+      
 
       <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
         <p>💧 Drink 2.5–3 litres of water throughout the day</p>
