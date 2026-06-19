@@ -6,9 +6,10 @@ import Login     from './pages/Login'
 import Signup    from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Chat      from './pages/Chat'
+import Onboarding from './pages/Onboarding'
 
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth()
+function ProtectedRoute({ children, allowOnboardingOnly = false }) {
+  const { user, loading, profileComplete } = useAuth()
 
   if (loading) {
     return (
@@ -22,7 +23,21 @@ function ProtectedRoute({ children }) {
     )
   }
 
-  return user ? children : <Navigate to="/login" replace />
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  // Redirect to onboarding if profile is not complete
+  if (!profileComplete && !allowOnboardingOnly) {
+    return <Navigate to="/onboarding" replace />
+  }
+
+  // Redirect to dashboard if profile is complete but trying to visit onboarding
+  if (profileComplete && allowOnboardingOnly) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return children
 }
 
 function AppRoutes() {
@@ -31,6 +46,14 @@ function AppRoutes() {
       <Route path="/"          element={<Landing />} />
       <Route path="/login"     element={<Login />} />
       <Route path="/signup"    element={<Signup />} />
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute allowOnboardingOnly={true}>
+            <Onboarding />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={

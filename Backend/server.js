@@ -5,6 +5,7 @@ const cors = require('cors')
 const chatRoutes = require('./routes/chat')
 const whatsappRoutes = require('./routes/whatsapp')
 const dietRoutes = require('./routes/diet')
+const suggestionsRoutes = require('./routes/suggestions')
 
 const app = express()
 
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/api/chat', chatRoutes)
 app.use('/api/whatsapp', whatsappRoutes)
 app.use('/api/diet', dietRoutes)
+app.use('/api/suggest-medicines', suggestionsRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({

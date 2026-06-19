@@ -11,13 +11,36 @@ import { useSpeech } from '../hooks/useSpeech'
 import { supabase } from '../lib/supabase'
 import healthData from '../data/healthData.json'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
-const buildSystemPrompt = () => {
+const buildSystemPrompt = (profile = null) => {
   const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
   const vaccineNames = healthData.vaccines.map(v => v.name).join(', ')
 
-  return `You are ArogyaBot, a public health awareness assistant for rural and semi-urban India.
+  let profileText = 'You do not have the user\'s profile details yet.'
+  if (profile) {
+    const wVal = parseFloat(profile.weight)
+    const hVal = parseFloat(profile.height)
+    let bmiText = ''
+    if (!isNaN(wVal) && !isNaN(hVal) && hVal > 0) {
+      const bmi = (wVal / Math.pow(hVal / 100, 2)).toFixed(1)
+      let category = 'Normal'
+      if (bmi < 18.5) category = 'Underweight'
+      else if (bmi >= 25 && bmi < 30) category = 'Overweight'
+      else if (bmi >= 30) category = 'Obese'
+      bmiText = `, BMI: ${bmi} (${category})`
+    }
+
+    profileText = `You are a personal health assistant for the following user:
+Name: ${profile.name || 'User'}
+Age: ${profile.age || 'Not provided'}
+Weight: ${profile.weight ? profile.weight + 'kg' : 'Not provided'}
+Height: ${profile.height ? profile.height + 'cm' : 'Not provided'}${bmiText}
+Gender: ${profile.gender || 'Not provided'}
+Existing conditions/allergies: ${profile.conditions || 'None'}`
+  }
+
+  return `You are ArogyaBot, a personal health assistant for rural and semi-urban India.
+
+${profileText}
 
 Your knowledge includes information about these diseases: ${diseaseNames}
 And these vaccines: ${vaccineNames}
@@ -29,10 +52,48 @@ RULES:
 4. Keep answers under 150 words — simple and clear.
 5. Respond in the SAME language as the user (Hindi or English).
 6. Never diagnose — only provide general awareness information.
-7. Be warm and supportive in tone.`
+7. Be warm and supportive in tone.
+8. Always consider their age, weight, and BMI when giving advice.
+9. Give personalized remedies based on their profile.`
 }
 
-const getGeminiResponse = async (userMessage, chatHistory = [], language = 'en') => {
+const getGeminiResponse = async (userMessage, chatHistory = [], profile = null) => {
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY
+  if (openRouterKey) {
+    const model = import.meta.env.VITE_OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'
+    console.log(`Attempting OpenRouter generation with model: ${model}`)
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: model,
+          messages: [
+            { role: 'system', content: buildSystemPrompt(profile) },
+            ...chatHistory.map(msg => ({
+              role: msg.role === 'user' ? 'user' : 'assistant',
+              content: msg.content
+            })),
+            { role: 'user', content: userMessage }
+          ]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${openRouterKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      const replyText = response.data?.choices?.[0]?.message?.content
+      if (replyText) {
+        console.log(`Success with OpenRouter model: ${model}`)
+        return replyText
+      }
+    } catch (err) {
+      console.warn('OpenRouter generation failed, falling back to Gemini:', err.response?.data || err.message)
+    }
+  }
+
   const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
   if (!apiKey) {
     throw new Error('Gemini API key is not configured.')
@@ -48,7 +109,7 @@ const getGeminiResponse = async (userMessage, chatHistory = [], language = 'en')
     content: userMessage
   })
 
-  const systemPrompt = buildSystemPrompt()
+  const systemPrompt = buildSystemPrompt(profile)
   const conversationText = messagesList.map(m => `${m.role}: ${m.content}`).join('\n')
   const promptText = `
 ${systemPrompt}
@@ -99,6 +160,64 @@ ${conversationText}
   throw lastError || new Error('All frontend Gemini model fallbacks failed')
 }
 
+const getGreetingTimeOfDay = () => {
+  const hr = new Date().getHours()
+  if (hr >= 5 && hr < 12) return 'morning'
+  if (hr >= 12 && hr < 17) return 'afternoon'
+  return 'evening'
+}
+
+const getMockGreeting = (profile, lang) => {
+  const userName = profile?.name || 'User'
+  const timeOfDay = getGreetingTimeOfDay()
+  let tip = ''
+  
+  if (lang === 'hi') {
+    const timeOfDayHi = timeOfDay === 'morning' ? 'शुभ प्रभात' : timeOfDay === 'afternoon' ? 'नमस्कार' : 'शुभ संध्या'
+    if (profile?.conditions) {
+      tip = `चूंकि आपको ${profile.conditions} है, कृपया समय पर अपनी दवाएं लें और पर्याप्त पानी पिएं।`
+    } else if (profile?.age && parseInt(profile.age) > 50) {
+      tip = `उम्र के इस पड़ाव में रोजाना हल्की सैर करें और जोड़ों के स्वास्थ्य का ध्यान रखें।`
+    } else {
+      tip = `स्वस्थ रहने के लिए संतुलित आहार लें और रोजाना व्यायाम करें।`
+    }
+    return `${timeOfDayHi} ${userName}! आपके प्रोफाइल के अनुसार, ${tip} आज आप कैसा महसूस कर रहे हैं? कोई विशेष स्वास्थ्य चिंता?`
+  } else {
+    if (profile?.conditions) {
+      tip = `since you have ${profile.conditions}, make sure to monitor your symptoms closely and stay hydrated.`
+    } else if (profile?.age && parseInt(profile.age) > 50) {
+      tip = `regular light exercise and maintaining joint mobility is key for healthy aging.`
+    } else {
+      tip = `maintaining a balanced diet and exercising regularly is essential for your overall well-being.`
+    }
+    return `Good ${timeOfDay} ${userName}! Based on your profile, ${tip} How are you feeling today? Any specific health concerns?`
+  }
+}
+
+const generateWelcomeGreeting = async (profile, lang) => {
+  const timeOfDay = getGreetingTimeOfDay()
+  const userName = profile?.name || 'User'
+  const prompt = `Generate a welcome greeting from ArogyaBot.
+The user's profile is:
+Name: ${userName}
+Age: ${profile?.age || 'Not provided'}
+Weight: ${profile?.weight ? profile.weight + 'kg' : 'Not provided'}
+Height: ${profile?.height ? profile.height + 'cm' : 'Not provided'}
+Gender: ${profile?.gender || 'Not provided'}
+Conditions: ${profile?.conditions || 'None'}
+
+Please construct the greeting EXACTLY matching this structure:
+"Good ${timeOfDay} ${userName}! Based on your profile, [one personalized health tip based on their age, weight, and conditions (mentioning relevant details if any)]. How are you feeling today? Any specific health concerns?"
+
+Requirements:
+1. Respond in ${lang === 'hi' ? 'Hindi (हिंदी)' : 'English'}.
+2. Keep it under 60 words, warm, simple, and clear.
+3. If language is Hindi, translate the entire greeting naturally (e.g. Good morning -> शुभ प्रभात or नमस्ते, but keep the core structured greeting).
+4. Do not include any extra text, comments, markdown, or warnings. Just output the greeting itself.`
+
+  return await getGeminiResponse(prompt, [], profile)
+}
+
 
 
 /* ─── Demo responses pool ─── */
@@ -147,7 +266,7 @@ function Bubble({ msg }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 animate-slide-up`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mr-2.5 shrink-0 mt-1 shadow-md shadow-indigo-500/20">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center mr-2.5 shrink-0 mt-1 shadow-md shadow-indigo-500/20">
           <HeartPulse className="w-4 h-4 text-white" />
         </div>
       )}
@@ -168,7 +287,7 @@ function Bubble({ msg }) {
 function TypingDots() {
   return (
     <div className="flex justify-start mb-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mr-2.5 shrink-0 shadow-md shadow-indigo-500/20">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center mr-2.5 shrink-0 shadow-md shadow-indigo-500/20">
         <HeartPulse className="w-4 h-4 text-white" />
       </div>
       <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-4 py-3.5 rounded-2xl rounded-bl-sm flex items-center gap-1.5 transition-colors duration-300">
@@ -192,10 +311,98 @@ export default function Chat() {
   const [sessionId, setSessionId] = useState(urlSessionId || null)
   const [isLoading, setIsLoading] = useState(false)
   const [language,  setLanguage]  = useState('en') // 'en' | 'hi'
+  const [profile,   setProfile]   = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
 
   const isDemo         = Boolean(user?.isDemo)
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
+  const preventFetchRef = useRef(false)
+
+  useEffect(() => {
+    if (!user) return
+    if (user.isDemo) {
+      const demoProfile = JSON.parse(localStorage.getItem('arogyabot_demo_profile') || '{}')
+      setProfile({
+        name: demoProfile.name || user.user_metadata?.name || 'Demo User',
+        age: demoProfile.age || '',
+        weight: demoProfile.weight || '',
+        height: demoProfile.height || '',
+        gender: demoProfile.gender || '',
+        conditions: demoProfile.conditions || ''
+      })
+      setProfileLoading(false)
+      return
+    }
+    
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const meta = user.user_metadata || {}
+        setProfile({
+          name: data?.name || meta.name || '',
+          age: data?.age !== undefined && data?.age !== null ? data.age : (meta.age || ''),
+          weight: data?.weight !== undefined && data?.weight !== null ? data.weight : (meta.weight || ''),
+          height: data?.height !== undefined && data?.height !== null ? data.height : (meta.height || ''),
+          gender: data?.gender || meta.gender || '',
+          conditions: data?.conditions || meta.conditions || ''
+        })
+        setProfileLoading(false)
+      })
+      .catch((err) => {
+        console.error('Error loading profile in chat:', err)
+        setProfileLoading(false)
+      })
+  }, [user])
+
+  // Handle initial greeting generation
+  useEffect(() => {
+    if (profileLoading || sessionId) return
+    if (messages.length > 0) {
+      if (!(messages.length === 1 && messages[0].isWelcome)) {
+        return
+      }
+    }
+
+    let isMounted = true
+
+    const generateGreeting = async () => {
+      setIsLoading(true)
+      try {
+        let greetingText = ''
+        if (isDemo) {
+          greetingText = getMockGreeting(profile, language)
+        } else {
+          try {
+            greetingText = await generateWelcomeGreeting(profile, language)
+          } catch (apiErr) {
+            console.warn('AI welcome generation failed, falling back to mock:', apiErr)
+            greetingText = getMockGreeting(profile, language)
+          }
+        }
+        
+        if (isMounted) {
+          setMessages([{
+            id: 'welcome',
+            role: 'assistant',
+            content: greetingText,
+            isWelcome: true
+          }])
+        }
+      } catch (err) {
+        console.error('Welcome greeting error:', err)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    generateGreeting()
+
+    return () => { isMounted = false }
+  }, [profileLoading, sessionId, profile, language])
 
   const speechLang = language === 'hi' ? 'hi-IN' : 'en-IN'
   const {
@@ -205,7 +412,11 @@ export default function Chat() {
 
   /* Sync speech transcript → input */
   useEffect(() => {
-    if (transcript) setInput(transcript)
+    if (transcript) {
+      setTimeout(() => {
+        setInput(transcript)
+      }, 0)
+    }
   }, [transcript])
 
   /* Auto-scroll */
@@ -225,6 +436,11 @@ export default function Chat() {
   /* Fetch existing messages for this session if it exists */
   useEffect(() => {
     if (!sessionId || isDemo) return
+
+    if (preventFetchRef.current) {
+      preventFetchRef.current = false
+      return
+    }
 
     const fetchSessionMessages = async () => {
       try {
@@ -317,17 +533,31 @@ export default function Chat() {
           if (sessionError) throw sessionError
 
           activeSessionId = sessionData.id
+          preventFetchRef.current = true
           setSessionId(activeSessionId)
           window.history.replaceState(null, '', `/chat/${activeSessionId}`)
         }
 
         // Call Gemini directly from the frontend (with cascade fallback logic)
-        reply = await getGeminiResponse(text, buildHistory(updatedMessages), language)
+        reply = await getGeminiResponse(text, buildHistory(updatedMessages), profile)
 
         // Store messages directly in Supabase (non-blocking)
         if (activeSessionId) {
           try {
-            const { error: dbError } = await supabase.from('messages').insert([
+            const messagesToInsert = []
+            
+            // Check if we need to save the initial welcome message
+            const hasWelcome = messages.length > 0 && messages[0].isWelcome
+            if (hasWelcome) {
+              messagesToInsert.push({
+                session_id: activeSessionId,
+                role: 'assistant',
+                content: messages[0].content,
+                language: language
+              })
+            }
+
+            messagesToInsert.push(
               {
                 session_id: activeSessionId,
                 role: 'user',
@@ -340,7 +570,9 @@ export default function Chat() {
                 content: reply,
                 language: language
               }
-            ])
+            )
+
+            const { error: dbError } = await supabase.from('messages').insert(messagesToInsert)
             if (dbError) {
               console.error('Database message insert error:', dbError)
             }
@@ -379,7 +611,7 @@ setMessages(prev => [...prev, {
   return (
     <div className="h-screen h-[100dvh] flex flex-col bg-white dark:bg-slate-900 transition-colors duration-300 overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 border-b border-slate-100 dark:border-slate-700/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-10 transition-colors duration-300">
+      <header className="shrink-0 border-b border-indigo-100/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-10 transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
           <button
             id="chat-back-btn"
@@ -391,7 +623,7 @@ setMessages(prev => [...prev, {
           </button>
 
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center shadow-sm">
               <HeartPulse className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -447,7 +679,7 @@ setMessages(prev => [...prev, {
           {/* Empty state */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-64 text-center animate-fade-in">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center mb-5 shadow-xl shadow-indigo-500/20">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-amber-500 flex items-center justify-center mb-5 shadow-xl shadow-indigo-500/20">
                 <HeartPulse className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
