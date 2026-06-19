@@ -114,5 +114,23 @@ ${messages.map(m => `${m.role}: ${m.content}`).join('\n')}
   const result = await model.generateContent(prompt)
   return result.response.text()
 }
+const getDietPlan = async (prompt) => {
+  const dietPrompt = `
+You are an expert Indian nutritionist.
 
-module.exports = { getChatResponse }
+Generate a personalized diet plan.
+
+IMPORTANT:
+Respond ONLY with valid JSON.
+
+${prompt}
+`
+
+  const result = await model.generateContent(dietPrompt)
+  return result.response.text()
+}
+
+module.exports = {
+  getChatResponse,
+  getDietPlan
+}
