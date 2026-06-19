@@ -648,44 +648,7 @@ JSON Schema:
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-indigo-100 dark:border-slate-800 mb-8 overflow-x-auto gap-1">
-          {[
-            { id: 'home', label: 'Overview', icon: Sparkles },
-            { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
-             { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
-            { id: 'tips', label: 'Tips & Guidelines', icon: Info },
-            { id: 'profile', label: 'Profile Settings', icon: User },
-          ].map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id)
-                  setSaveMessage('')
-                }}
-                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all duration-200 whitespace-nowrap -mb-[2px] ${
-                  isActive
-                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20'
-                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-1 transition-all ${
-                    isActive ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+      
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
@@ -697,6 +660,7 @@ JSON Schema:
                 { id: 'home', label: 'Overview', icon: Sparkles },
                 { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
                 { id: 'suggestions', label: 'Medicine Suggester', icon: Pill },
+                { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
                 { id: 'tips', label: 'Tips & Guidelines', icon: Info },
                 { id: 'tools', label: 'Health Tools', icon: Activity },
                 { id: 'care', label: 'Care Finder', icon: MapPin },
@@ -1209,7 +1173,7 @@ JSON Schema:
                     </div>
                   )}
             </div>
-          </div>
+         
         )}
         {activeTab === 'diet' && (
   <div className="space-y-6">
@@ -1328,7 +1292,7 @@ BMI: ${dietPlan.bmi}
     )}
   </div>
 )}
-          )}
+          
         </div>
       )}
 
