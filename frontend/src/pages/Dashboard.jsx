@@ -696,7 +696,7 @@ JSON Schema:
               {/* ArogyaBot mini logo */}
               <div className="hidden lg:flex items-center gap-2 px-3 pb-3 border-b border-indigo-100/50 dark:border-slate-700/50 mb-3 w-full">
                 <HeartPulse className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <span className="font-extrabold text-sm text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300">
+                <span className="font-display font-bold text-sm text-indigo-600 dark:text-indigo-400">
                   ArogyaBot
                 </span>
               </div>
@@ -785,7 +785,7 @@ JSON Schema:
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
                     <p className="text-indigo-100 text-sm font-semibold mb-1.5 tracking-wider uppercase">Good day 👋</p>
-                    <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-3">
+                    <h1 className="text-3xl md:text-5xl font-display font-extrabold tracking-tight mb-3">
                       Welcome back,<br />
                       <span className="text-white drop-shadow-sm">{loading ? '…' : displayName}</span>
                     </h1>
@@ -812,14 +812,14 @@ JSON Schema:
                 ].map((stat) => (
                   <div key={stat.label} className={`bg-gradient-to-br ${stat.bg} ${stat.border} border border-indigo-100/30 dark:border-slate-800 p-4 rounded-2xl flex flex-col justify-center`}>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">{stat.label}</span>
-                    <span className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{stat.value}</span>
+                    <span className="font-display font-bold text-2xl text-slate-900 dark:text-white mt-0.5">{stat.value}</span>
                   </div>
                 ))}
               </div>
 
               {/* Short Tips Grid */}
               <div className="pt-6 border-t border-indigo-50 dark:border-slate-800/80 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
-                <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
+                <h3 className="text-sm font-display font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
                   Tips for better results
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -832,7 +832,7 @@ JSON Schema:
                       <div className={`w-10 h-10 rounded-xl ${t.bg} flex items-center justify-center mb-3`}>
                         <t.icon className={`w-5 h-5 ${t.color}`} />
                       </div>
-                      <p className="text-slate-900 dark:text-white font-bold text-sm mb-1">{t.label}</p>
+                      <p className="text-slate-900 dark:text-white font-display font-semibold text-sm mb-1">{t.label}</p>
                       <p className="text-slate-400 dark:text-slate-500 text-xs leading-relaxed">{t.hint}</p>
                     </div>
                   ))}
@@ -851,7 +851,7 @@ JSON Schema:
             <div className="animate-tab-fade-in space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Medical Conversations</h2>
+                  <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white">Your Medical Conversations</h2>
                   <p className="text-slate-500 dark:text-slate-400 text-sm">Access your previous sessions and medical guidance from ArogyaBot.</p>
                 </div>
                 {sessions.length > 0 && (
@@ -880,7 +880,7 @@ JSON Schema:
                   <div className="w-20 h-20 bg-indigo-50 dark:bg-slate-950/60 rounded-full flex items-center justify-center mx-auto mb-4 ring-4 ring-indigo-100 dark:ring-indigo-900/30">
                     <MessageCircle className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">No chats yet</h3>
+                  <h3 className="text-lg font-display font-semibold text-slate-900 dark:text-white mb-1">No chats yet</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 max-w-sm mx-auto">
                     Start your first conversation with ArogyaBot to describe your symptoms and get guidance.
                   </p>
@@ -909,7 +909,7 @@ JSON Schema:
                       >
                         <div className="flex justify-between items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="text-slate-800 dark:text-slate-100 font-bold text-sm leading-snug line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                            <p className="text-slate-800 dark:text-slate-100 font-display font-semibold text-sm leading-snug line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                               {title}
                             </p>
                             <p className="text-slate-500 dark:text-slate-400 text-xs mt-1.5 line-clamp-2 leading-relaxed">
@@ -948,7 +948,7 @@ JSON Schema:
           {activeTab === 'tips' && (
             <div className="animate-custom-fade-in space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Guidance & Tips</h2>
+                <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white">Guidance & Tips</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Follow these tips to get the most accurate medical assessments.</p>
               </div>
 
@@ -961,7 +961,7 @@ JSON Schema:
                     <div className={`w-10 h-10 rounded-xl ${t.bg} flex items-center justify-center mb-3`}>
                       <t.icon className={`w-5 h-5 ${t.color}`} />
                     </div>
-                    <p className="text-slate-900 dark:text-white font-bold text-base mb-1.5">{t.label}</p>
+                    <p className="text-slate-900 dark:text-white font-display font-semibold text-base mb-1.5">{t.label}</p>
                     <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{t.hint}</p>
                   </div>
                 ))}
@@ -969,7 +969,7 @@ JSON Schema:
 
               {/* Extended recommendations */}
               <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Detailed Best Practices</h3>
+                <h3 className="text-lg font-display font-semibold text-slate-900 dark:text-white mb-4">Detailed Best Practices</h3>
                 <ul className="space-y-3.5">
                   {[
                     { title: 'Symptom Precision', desc: 'Specify exactly where the symptom is, what it feels like (e.g. sharp, dull ache, burning), and how severe it is on a scale of 1-10.' },
@@ -1004,7 +1004,7 @@ JSON Schema:
           {activeTab === 'tools' && (
             <div className="animate-tab-fade-in space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Health Tools</h2>
+                <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white">Health Tools</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Calculate your health metrics and get general suggestions.</p>
               </div>
 
@@ -1018,7 +1018,7 @@ JSON Schema:
           {activeTab === 'care' && (
             <div className="animate-tab-fade-in space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Care Finder</h2>
+                <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white">Care Finder</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Locate nearby medical centers using your device location or search by city.</p>
               </div>
 
@@ -1041,7 +1041,7 @@ JSON Schema:
                           <MapPin className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Nearby Hospitals</h3>
+                          <h3 className="text-xl font-display font-semibold text-slate-900 dark:text-white tracking-tight">Nearby Hospitals</h3>
                           <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5 font-bold">📍 Detected Location: {locCoords.lat?.toFixed(6)}, {locCoords.lng?.toFixed(6)}</p>
                         </div>
                       </div>
@@ -1101,13 +1101,13 @@ JSON Schema:
                           <MapPin className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Hospital Finder</h3>
+                          <h3 className="text-xl font-display font-semibold text-slate-900 dark:text-white tracking-tight">Hospital Finder</h3>
                           <p className="text-red-500 dark:text-red-400 text-xs mt-0.5 font-bold">⚠️ Location access denied — search manually or allow access below</p>
                         </div>
                       </div>
 
                       <div className="p-8 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center max-w-xl mx-auto bg-slate-50/30 dark:bg-slate-900/30">
-                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        <h4 className="text-lg font-display font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
                           <MapPin className="w-5 h-5 text-red-500 shrink-0" />
                           Manual City Search
                         </h4>
@@ -1166,7 +1166,7 @@ JSON Schema:
 
                       {searchCity && (
                         <div className="space-y-4 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
-                          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                          <h3 className="text-lg font-display font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-indigo-500" />
                             Hospitals near {searchCity}
                           </h3>
@@ -1231,7 +1231,7 @@ JSON Schema:
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🥗</span>
-                <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-650 dark:from-green-400 dark:to-emerald-400">
+                <h2 className="text-2xl font-display font-extrabold text-green-600 dark:text-green-400">
                   AI Diet Planner
                 </h2>
               </div>
@@ -1390,7 +1390,7 @@ JSON Schema:
             {dietPlan && (
               <div className="bg-white dark:bg-slate-800 border border-green-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-6 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
                 <div className="border-b border-green-100 dark:border-slate-700/60 pb-3 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 className="text-lg font-display font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     🥗 Your Personalized Diet Plan
                   </h3>
                   <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900/50">
@@ -1511,7 +1511,7 @@ Diet: ${dietData.dietType}
               <div className="bg-gradient-to-r from-indigo-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">💊</span>
-                  <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300">
+                  <h2 className="text-2xl font-display font-extrabold text-indigo-600 dark:text-indigo-400">
                     AI Medicine Suggester
                   </h2>
                 </div>
@@ -1698,7 +1698,7 @@ Diet: ${dietData.dietType}
                             <FlaskConical className="w-5 h-5" />
                           </div>
                           <div className="space-y-1">
-                            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white leading-tight flex items-center gap-2.5">
+                            <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white leading-tight flex items-center gap-2.5">
                               <span>{suggestionsResult.system} Recommendations</span>
                               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-white/10 text-slate-700 dark:text-slate-300">
                                 {suggestionsResult.ageGroup} Profile
@@ -1726,7 +1726,7 @@ Diet: ${dietData.dietType}
                               }`}
                             >
                               <div className="space-y-1.5">
-                                <h4 className={`font-bold text-sm ${
+                                <h4 className={`font-display font-semibold text-sm ${
                                   suggestionsResult.system === 'Ayurvedic'
                                     ? 'text-green-600 dark:text-green-400'
                                     : suggestionsResult.system === 'Homeopathy'
@@ -1764,7 +1764,7 @@ Diet: ${dietData.dietType}
                       {/* Clinical warnings below */}
                       {suggestionsResult.warnings && suggestionsResult.warnings.length > 0 && (
                         <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                          <h3 className="text-base font-display font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-red-550" />
                             Clinical Safety Warnings
                           </h3>
@@ -1817,7 +1817,7 @@ Diet: ${dietData.dietType}
           {activeTab === 'profile' && (
             <div className="animate-tab-fade-in space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Profile Settings</h2>
+                <h2 className="text-2xl font-display font-bold text-slate-900 dark:text-white">Profile Settings</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">Customize how ArogyaBot addresses you.</p>
               </div>
 
@@ -1832,7 +1832,7 @@ Diet: ${dietData.dietType}
                       return name.substring(0, 2).toUpperCase()
                     })()}
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-3">{displayName}</h3>
+                  <h3 className="text-lg font-display font-semibold text-slate-900 dark:text-white mt-3">{displayName}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{user?.email}</p>
                 </div>
 
