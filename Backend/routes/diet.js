@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { getChatResponse } = require('../utils/claudeClient')
+console.log(response)
 
 router.post('/generate', async (req, res) => {
   try {
