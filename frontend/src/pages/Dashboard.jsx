@@ -400,8 +400,18 @@ JSON Schema:
         }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
   }, [user])
+
+  useEffect(() => {
+    if (profile) {
+      setDietData(prev => ({
+        ...prev,
+        age: profile.age !== undefined && profile.age !== null ? profile.age.toString() : prev.age,
+        weight: profile.weight !== undefined && profile.weight !== null ? profile.weight.toString() : prev.weight,
+        height: profile.height !== undefined && profile.height !== null ? profile.height.toString() : prev.height,
+      }))
+    }
+  }, [profile])
 
   useEffect(() => {
     if (!user?.id) return
@@ -648,44 +658,6 @@ JSON Schema:
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-indigo-100 dark:border-slate-800 mb-8 overflow-x-auto gap-1">
-          {[
-            { id: 'home', label: 'Overview', icon: Sparkles },
-            { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
-             { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
-            { id: 'tips', label: 'Tips & Guidelines', icon: Info },
-            { id: 'profile', label: 'Profile Settings', icon: User },
-          ].map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id)
-                  setSaveMessage('')
-                }}
-                className={`flex items-center gap-2 px-5 py-3 border-b-2 font-semibold text-sm transition-all duration-200 whitespace-nowrap -mb-[2px] ${
-                  isActive
-                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20'
-                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-1 transition-all ${
-                    isActive ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
@@ -697,6 +669,7 @@ JSON Schema:
                 { id: 'home', label: 'Overview', icon: Sparkles },
                 { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
                 { id: 'suggestions', label: 'Medicine Suggester', icon: Pill },
+                { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
                 { id: 'tips', label: 'Tips & Guidelines', icon: Info },
                 { id: 'tools', label: 'Health Tools', icon: Activity },
                 { id: 'care', label: 'Care Finder', icon: MapPin },
@@ -1208,267 +1181,421 @@ JSON Schema:
                       )}
                     </div>
                   )}
+                </div>
+              )}
             </div>
+          )}
+        {activeTab === 'diet' && (
+          <div className="animate-tab-fade-in max-w-3xl mx-auto space-y-4">
+            
+            {/* HEADER CARD */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
+              <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-650 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300">
+                🥗 AI Diet Planner
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-2">
+                Get a personalized meal plan based on your body metrics and health goals
+              </p>
+            </div>
+
+            {/* FORM CARD */}
+            <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-6">
+              
+              {/* Grid of Inputs */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Age (Years)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 25"
+                    value={dietData.age}
+                    onChange={(e) =>
+                      setDietData({
+                        ...dietData,
+                        age: e.target.value
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Weight (kg)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 70"
+                    value={dietData.weight}
+                    onChange={(e) =>
+                      setDietData({
+                        ...dietData,
+                        weight: e.target.value
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Height (cm)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 175"
+                    value={dietData.height}
+                    onChange={(e) =>
+                      setDietData({
+                        ...dietData,
+                        height: e.target.value
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 text-sm font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Goal selector as pill buttons */}
+              <div className="space-y-2 flex flex-col items-center">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                  Health Goal
+                </label>
+                <div className="flex flex-wrap gap-2 justify-center w-full">
+                  {[
+                    'Weight Loss',
+                    'Weight Gain',
+                    'Maintain Weight',
+                    'Build Muscle',
+                    'Diabetic Diet',
+                    'Heart Healthy'
+                  ].map(g => {
+                    const isSelected = dietData.goal === g
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() =>
+                          setDietData({
+                            ...dietData,
+                            goal: g
+                          })
+                        }
+                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
+                          isSelected
+                            ? 'bg-green-600 text-white border-transparent shadow-sm'
+                            : 'border border-green-200 dark:border-green-900/50 text-green-700 dark:text-green-400 bg-white dark:bg-slate-900 hover:bg-green-50 dark:hover:bg-green-950/20'
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Dietary preference pills */}
+              <div className="space-y-2 flex flex-col items-center">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                  Dietary Preference
+                </label>
+                <div className="flex flex-wrap gap-2 justify-center w-full">
+                  {['Vegetarian', 'Non-Vegetarian', 'Vegan'].map(dt => {
+                    const isSelected = dietData.dietType === dt
+                    return (
+                      <button
+                        key={dt}
+                        type="button"
+                        onClick={() =>
+                          setDietData({
+                            ...dietData,
+                            dietType: dt
+                          })
+                        }
+                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
+                          isSelected
+                            ? 'bg-green-600 text-white border-transparent shadow-sm'
+                            : 'border border-green-200 dark:border-green-900/50 text-green-700 dark:text-green-400 bg-white dark:bg-slate-900 hover:bg-green-50 dark:hover:bg-green-950/20'
+                        }`}
+                      >
+                        {dt}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Generate button */}
+              <button
+                type="button"
+                onClick={generateDietPlan}
+                disabled={dietLoading || !dietData.age || !dietData.weight || !dietData.height}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-xl text-sm font-extrabold shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                {dietLoading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Generating Personalized Plan...
+                  </>
+                ) : (
+                  'Generate Diet Plan'
+                )}
+              </button>
+
+            </div>
+
+            {/* RESULTS CARD */}
+            {dietPlan && (
+              <div className="bg-white dark:bg-slate-800 border border-green-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-6 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
+                <div className="border-b border-green-100 dark:border-slate-700/60 pb-3 flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    🥗 Your Personalized Diet Plan
+                  </h3>
+                  <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900/50">
+                    {dietData.goal}
+                  </span>
+                </div>
+
+                {/* Grid of Key Metrics */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Estimated BMI', value: dietPlan.bmi || 'N/A', unit: '' },
+                    { label: 'Daily Calories', value: dietPlan.calories || 'N/A', unit: ' kcal' },
+                    { label: 'Water Intake', value: dietPlan.waterIntake || 'N/A', unit: '' }
+                  ].map((m, idx) => (
+                    <div key={idx} className="bg-green-50/50 dark:bg-slate-900/60 border border-green-100/40 dark:border-slate-750 p-3.5 rounded-xl text-center">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">{m.label}</span>
+                      <span className="text-base font-extrabold text-green-700 dark:text-green-400 mt-1 block">
+                        {m.value}{m.unit}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Grid of Macros */}
+                <div className="grid grid-cols-3 gap-3 border-t border-dashed border-green-100 dark:border-slate-700/50 pt-4">
+                  {[
+                    { label: 'Protein', value: dietPlan.protein || 'N/A' },
+                    { label: 'Carbs', value: dietPlan.carbs || 'N/A' },
+                    { label: 'Fats', value: dietPlan.fat || 'N/A' }
+                  ].map((m, idx) => (
+                    <div key={idx} className="text-center">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">{m.label}</span>
+                      <span className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-0.5 block">
+                        {m.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Day-wise meal plan: Breakfast | Mid-Morning | Lunch | Evening Snack | Dinner */}
+                <div className="space-y-3.5 border-t border-green-150 dark:border-slate-700/50 pt-4">
+                  <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+                    Daily Meal Breakdown
+                  </h4>
+                  {[
+                    { label: 'Breakfast', value: dietPlan.breakfast, emoji: '🥞', cals: 'Est. 350-400 kcal' },
+                    { label: 'Mid-Morning', value: dietPlan.midMorning || (dietPlan.snacks && dietPlan.snacks.toLowerCase().includes('and') ? dietPlan.snacks.split(/and/i)[0].trim() : dietPlan.snacks) || 'Fruit bowl', emoji: '🍎', cals: 'Est. 100-150 kcal' },
+                    { label: 'Lunch', value: dietPlan.lunch, emoji: '🍲', cals: 'Est. 500-600 kcal' },
+                    { label: 'Evening Snack', value: dietPlan.eveningSnack || (dietPlan.snacks && dietPlan.snacks.toLowerCase().includes('and') ? dietPlan.snacks.split(/and/i)[1].trim() : 'Nuts'), emoji: '🍵', cals: 'Est. 100-150 kcal' },
+                    { label: 'Dinner', value: dietPlan.dinner, emoji: '🥗', cals: 'Est. 400-450 kcal' }
+                  ].map((meal, idx) => (
+                    <div key={idx} className="flex items-start gap-3.5 p-4 bg-slate-50 dark:bg-slate-900 border border-green-100/30 dark:border-slate-800/80 rounded-2xl">
+                      <span className="text-2xl shrink-0 mt-0.5" role="img" aria-label={meal.label}>
+                        {meal.emoji}
+                      </span>
+                      <div className="flex-1 space-y-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">
+                            {meal.label}
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">
+                            {meal.cals}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+                          {meal.value}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* WhatsApp Share Button */}
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95"
+                    onClick={() => {
+                      const message = `
+🥗 ArogyaBot Diet Plan 🥗
+
+Goal: ${dietData.goal}
+Diet: ${dietData.dietType}
+
+🥞 Breakfast: ${dietPlan.breakfast}
+🍎 Mid-Morning: ${dietPlan.midMorning || (dietPlan.snacks && dietPlan.snacks.toLowerCase().includes('and') ? dietPlan.snacks.split(/and/i)[0].trim() : dietPlan.snacks) || 'Fruit bowl'}
+🍲 Lunch: ${dietPlan.lunch}
+🍵 Evening Snack: ${dietPlan.eveningSnack || (dietPlan.snacks && dietPlan.snacks.toLowerCase().includes('and') ? dietPlan.snacks.split(/and/i)[1].trim() : 'Nuts')}
+🥗 Dinner: ${dietPlan.dinner}
+
+🔥 Calories: ${dietPlan.calories}
+📊 BMI: ${dietPlan.bmi}
+💧 Water Intake: ${dietPlan.waterIntake}
+                      `
+                      window.open(`https://wa.me/?text=${encodeURIComponent(message.trim())}`, '_blank')
+                    }}
+                  >
+                    Share on WhatsApp
+                  </button>
+                </div>
+
+                {/* Disclaimer banner */}
+                <div className="px-6 py-5 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-700/30 rounded-xl text-amber-800 dark:text-amber-400/80 text-xs leading-relaxed">
+                  <strong>Disclaimer:</strong> This diet plan is AI-generated and is meant for general wellness guidance.
+                  If you have underlying health issues, allergies, or chronic conditions, please consult a registered dietitian or medical practitioner before making major dietary changes.
+                </div>
+
+              </div>
+            )}
           </div>
         )}
-        {activeTab === 'diet' && (
-  <div className="space-y-6">
-
-    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-      Diet Planner
-    </h2>
-
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl">
-
-      <div className="grid md:grid-cols-2 gap-4">
-
-        <input
-          type="number"
-          placeholder="Age"
-          className="input-field"
-          onChange={(e) =>
-            setDietData({
-              ...dietData,
-              age: e.target.value
-            })
-          }
-        />
-
-        <input
-          type="number"
-          placeholder="Weight (kg)"
-          className="input-field"
-          onChange={(e) =>
-            setDietData({
-              ...dietData,
-              weight: e.target.value
-            })
-          }
-        />
-
-        <input
-          type="number"
-          placeholder="Height (cm)"
-          className="input-field"
-          onChange={(e) =>
-            setDietData({
-              ...dietData,
-              height: e.target.value
-            })
-          }
-        />
-
-        <select
-          className="input-field"
-          onChange={(e) =>
-            setDietData({
-              ...dietData,
-              goal: e.target.value
-            })
-          }
-        >
-          <option>Weight Loss</option>
-          <option>Weight Gain</option>
-          <option>Maintenance</option>
-        </select>
-      </div>
-
-      <button
-        onClick={generateDietPlan}
-        className="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-xl"
-      >
-        {dietLoading ? 'Generating...' : 'Generate Diet Plan'}
-      </button>
-    </div>
-
-    {dietPlan && (
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl">
-
-        <h3 className="text-xl font-bold mb-4">
-          Your Diet Plan
-        </h3>
-
-        <div className="space-y-2">
-          <p><strong>Breakfast:</strong> {dietPlan.breakfast}</p>
-          <p><strong>Lunch:</strong> {dietPlan.lunch}</p>
-          <p><strong>Snacks:</strong> {dietPlan.snacks}</p>
-          <p><strong>Dinner:</strong> {dietPlan.dinner}</p>
-          <p><strong>BMI:</strong> {dietPlan.bmi}</p>
-          <p><strong>Calories:</strong> {dietPlan.calories}</p>
-          <p><strong>Protein:</strong> {dietPlan.protein}</p>
-          <p><strong>Carbs:</strong> {dietPlan.carbs}</p>
-          <p><strong>Fat:</strong> {dietPlan.fat}</p>
-          <p><strong>Water Intake:</strong> {dietPlan.waterIntake}</p>
-        </div>
-
-        <button
-          className="mt-4 px-6 py-3 bg-green-600 text-white rounded-xl"
-          onClick={() => {
-            const message = `
-Diet Plan
-
-Breakfast: ${dietPlan.breakfast}
-Lunch: ${dietPlan.lunch}
-Snacks: ${dietPlan.snacks}
-Dinner: ${dietPlan.dinner}
-
-Calories: ${dietPlan.calories}
-BMI: ${dietPlan.bmi}
-            `
-
-            window.open(
-              `https://wa.me/?text=${encodeURIComponent(message)}`
-            )
-          }}
-        >
-          Share on WhatsApp
-        </button>
-
-      </div>
-    )}
-  </div>
-)}
-          )}
-        </div>
-      )}
 
       {/* AI Medicine Suggester Tab */}
           {activeTab === 'suggestions' && (
-            <div className="animate-tab-fade-in space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">AI Medicine Suggester</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <div className="animate-tab-fade-in max-w-3xl mx-auto space-y-4">
+              
+              {/* SECTION 1 - Header card (full width) */}
+              <div className="bg-gradient-to-r from-indigo-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border border-indigo-100 dark:border-slate-700 shadow-sm">
+                <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-650 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300 flex items-center gap-2">
+                  <Pill className="w-6 h-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  AI Medicine Suggester
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-2">
                   Enter your symptoms, select your preferred system of medicine, and provide your age to get tailored medicine suggestions and dosage guidelines.
                 </p>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                {/* Left Panel: Symptoms Form */}
-                <div className="w-full space-y-5">
-                  <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
-                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-indigo-50 dark:border-slate-700/60 pb-3">
-                      <FlaskConical className="w-4 h-4 text-indigo-500" />
-                      Remedy Request
-                    </h3>
 
-                    {/* Symptoms input */}
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                        Quick Symptoms
-                      </label>
-                      <div className="flex flex-wrap gap-2.5 mb-2 max-h-28 overflow-y-auto">
-                        {['Headache', 'Fever', 'Cough', 'Cold', 'Body Ache', 'Nausea', 'Fatigue', 'Back Pain'].map((chip) => {
-                          const isSelected = symptoms.toLowerCase().includes(chip.toLowerCase())
-                          return (
-                            <button
-                              key={chip}
-                              type="button"
-                              onClick={() => handleChipClick(chip)}
-                              className={`px-3.5 py-1.5 rounded-full text-sm font-bold transition-all duration-205 border ${
-                                isSelected
-                                  ? 'bg-indigo-600 text-white border-transparent shadow-sm'
-                                  : 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/40'
-                              }`}
-                            >
-                              {chip}
-                            </button>
-                          )
-                        })}
-                      </div>
-
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                        Describe Symptoms
-                      </label>
-                      <textarea
-                        rows={3}
-                        placeholder="e.g. High fever, headache, body ache for 2 days"
-                        value={symptoms}
-                        onChange={(e) => setSymptoms(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium resize-none"
-                      />
-                    </div>
-
-                    {/* Medical System Selector */}
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        Preferred System
-                      </label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          { id: 'Allopathy', label: 'Allopathy', activeClass: 'bg-blue-600 text-white shadow-blue-500/20' },
-                          { id: 'Ayurvedic', label: 'Ayurvedic', activeClass: 'bg-emerald-600 text-white shadow-emerald-500/20' },
-                          { id: 'Homeopathy', label: 'Homeopathy', activeClass: 'bg-amber-605 text-white shadow-amber-500/20' }
-                        ].map(sys => {
-                          const isActive = medSystem === sys.id
-                          return (
-                            <button
-                              key={sys.id}
-                              type="button"
-                              onClick={() => setMedSystem(sys.id)}
-                              className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all text-center ${
-                                isActive
-                                  ? `${sys.activeClass} border-transparent shadow-md`
-                                  : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                              }`}
-                            >
-                              {sys.label}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Age input */}
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                        User Age (Years)
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="120"
-                        placeholder="e.g. 32"
-                        value={userAge}
-                        onChange={(e) => setUserAge(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium"
-                      />
-                    </div>
-
-                    <div className="flex gap-3 mt-4 flex-col sm:flex-row">
+              {/* SECTION 2 - Symptom chips (full width card) */}
+              <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-3">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Quick Symptoms
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['Headache', 'Fever', 'Cough', 'Cold', 'Body Ache', 'Nausea', 'Fatigue', 'Back Pain'].map((chip) => {
+                    const isSelected = symptoms.toLowerCase().includes(chip.toLowerCase())
+                    return (
                       <button
+                        key={chip}
                         type="button"
-                        onClick={() => setSuggesterLang(prev => (prev === 'EN' ? 'HI' : 'EN'))}
-                        className={`px-3 py-3 rounded-xl border text-xs font-black transition-all flex items-center justify-center shrink-0 w-full sm:w-14 ${
-                          suggesterLang === 'HI'
-                            ? 'bg-amber-500 text-white border-transparent shadow-md shadow-amber-500/20'
-                            : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        onClick={() => handleChipClick(chip)}
+                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white border-transparent shadow-sm'
+                            : 'border border-indigo-200 text-indigo-600 bg-white dark:bg-slate-900 dark:text-indigo-400 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-850/60'
                         }`}
-                        title="Toggle Hindi / English"
                       >
-                        {suggesterLang === 'HI' ? 'हिंदी' : 'EN'}
+                        {chip}
                       </button>
+                    )
+                  })}
+                </div>
+              </div>
 
-                      <button
-                        type="button"
-                        onClick={handleGetSuggestions}
-                        disabled={suggestionsLoading || !symptoms.trim() || !userAge}
-                        className="w-full sm:flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-850 disabled:from-indigo-400 disabled:to-indigo-500 text-white rounded-xl text-sm font-extrabold shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        Get Suggestions
-                      </button>
-                    </div>
+              {/* SECTION 3 - Form card (full width) */}
+              <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-6">
+                {/* Describe Symptoms textarea */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Describe Symptoms
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="e.g. High fever, headache, body ache for 2 days"
+                    value={symptoms}
+                    onChange={(e) => setSymptoms(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium resize-none min-h-24"
+                  />
+                </div>
+
+                {/* 3 System Pills in one row centered */}
+                <div className="space-y-2 flex flex-col items-center">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                    Preferred System
+                  </label>
+                  <div className="flex gap-2 justify-center w-full max-w-md">
+                    {[
+                      { id: 'Allopathy', label: 'Allopathy', activeClass: 'bg-blue-600 text-white shadow-blue-500/20' },
+                      { id: 'Ayurvedic', label: 'Ayurvedic', activeClass: 'bg-emerald-600 text-white shadow-emerald-500/20' },
+                      { id: 'Homeopathy', label: 'Homeopathy', activeClass: 'bg-amber-600 text-white shadow-amber-500/20' }
+                    ].map(sys => {
+                      const isActive = medSystem === sys.id
+                      return (
+                        <button
+                          key={sys.id}
+                          type="button"
+                          onClick={() => setMedSystem(sys.id)}
+                          className={`flex-1 py-2 px-3 rounded-full text-xs font-bold border transition-all text-center ${
+                            isActive
+                              ? `${sys.activeClass} border-transparent shadow-md`
+                              : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          {sys.label}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
-                {/* Right Panel: Results & Loading */}
-                <div className="w-full min-h-[400px] relative">
+                {/* Age input + EN/हिंदी toggle + Get Suggestions button — all in one flex row, centered */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                  <div className="w-full sm:max-w-xs space-y-1">
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      placeholder="Age (Years)"
+                      value={userAge}
+                      onChange={(e) => setUserAge(e.target.value)}
+                      className="w-full px-3.5 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSuggesterLang(prev => (prev === 'EN' ? 'HI' : 'EN'))}
+                    className={`px-4 py-3 rounded-xl border text-xs font-black transition-all flex items-center justify-center shrink-0 w-full sm:w-16 ${
+                      suggesterLang === 'HI'
+                        ? 'bg-amber-500 text-white border-transparent shadow-md shadow-amber-500/20'
+                        : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                    title="Toggle Hindi / English"
+                  >
+                    {suggesterLang === 'HI' ? 'हिंदी' : 'EN'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleGetSuggestions}
+                    disabled={suggestionsLoading || !symptoms.trim() || !userAge}
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-850 disabled:from-indigo-400 disabled:to-indigo-500 text-white rounded-xl text-sm font-extrabold shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Get Suggestions
+                  </button>
+                </div>
+              </div>
+
+              {/* SECTION 4 - Results (full width, only shown after submit / when there is active loading, result, or error state) */}
+              {(suggestionsLoading || suggestionsResult || suggestionsError) && (
+                <div className="space-y-4 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
                   
                   {/* Heartbeat Medical Loading Animation */}
                   {suggestionsLoading && (
-                    <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center z-10 p-6 text-center animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-sm min-h-[300px] relative overflow-hidden">
                       <div className="relative flex flex-col items-center justify-center space-y-6">
                         <div className="relative flex items-center justify-center w-24 h-24">
-                          {/* Siren Red Glow */}
                           <div className="absolute w-24 h-24 rounded-full bg-red-500/20 blur-xl animate-ping" />
                           <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center shadow-lg border-2 border-slate-100 dark:border-slate-850">
                             <HeartPulse className="w-10 h-10 text-red-500 animate-pulse" />
@@ -1487,24 +1614,9 @@ BMI: ${dietPlan.bmi}
                     </div>
                   )}
 
-                  {/* Empty state */}
-                  {!suggestionsLoading && !suggestionsResult && !suggestionsError && (
-                    <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
-                      <div className="w-16 h-16 bg-indigo-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4 text-indigo-500">
-                        <Pill className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Medical Recommendation Report</h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md">
-                        {!symptoms.trim() || !userAge
-                          ? 'Fill in your symptoms and age on the left to begin.'
-                          : 'Click "Get Suggestions" to generate tailored medicine suggestions.'}
-                      </p>
-                    </div>
-                  )}
-
                   {/* Error state */}
                   {!suggestionsLoading && suggestionsError && (
-                    <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-950/40 rounded-2xl p-6 sm:p-8 h-full flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-950/40 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-sm">
                       <div className="w-16 h-16 bg-red-550/10 dark:bg-red-950/20 rounded-full flex items-center justify-center mb-4 text-red-500">
                         <AlertTriangle className="w-8 h-8 animate-bounce" />
                       </div>
@@ -1519,17 +1631,17 @@ BMI: ${dietPlan.bmi}
                     </div>
                   )}
 
-                  {/* Report output */}
+                  {/* Success Report output */}
                   {!suggestionsLoading && suggestionsResult && (
-                    <div className="space-y-6 animate-card-fade-in opacity-0" style={{ animationDelay: '50ms' }}>
+                    <div className="space-y-4">
                       
-                      {/* System and Age group Overview banner */}
-                      <div className={`p-6 sm:p-8 border-l-4 rounded-2xl transition-all shadow-sm ${
+                      {/* Header card with system name + colored theme */}
+                      <div className={`p-6 border border-l-4 rounded-2xl transition-all shadow-sm ${
                         suggestionsResult.system === 'Ayurvedic'
-                          ? 'bg-green-50 dark:bg-green-950/20 border-green-250 dark:border-green-900/50 text-green-700 dark:text-green-300 border-l-green-500'
+                          ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 border-l-green-500 text-green-700 dark:text-green-300'
                           : suggestionsResult.system === 'Homeopathy'
-                          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-250 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 border-l-amber-500'
-                          : 'bg-blue-50 dark:bg-blue-950/20 border-blue-250 dark:border-blue-900/50 text-blue-700 dark:text-blue-300 border-l-blue-500'
+                          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 border-l-amber-500 text-amber-700 dark:text-amber-300'
+                          : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 border-l-blue-500 text-blue-700 dark:text-blue-300'
                       }`}>
                         <div className="flex items-start gap-4">
                           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
@@ -1555,74 +1667,59 @@ BMI: ${dietPlan.bmi}
                         </div>
                       </div>
 
-                      {/* Suggestions list */}
+                      {/* Remedy cards: grid grid-cols-1 md:grid-cols-2 gap-4 full width */}
                       {suggestionsResult.suggestions && suggestionsResult.suggestions.length > 0 ? (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
-                          <div className="flex items-center justify-between border-b border-indigo-50 dark:border-slate-700/60 pb-3 flex-wrap gap-2">
-                            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                              <Pill className="w-5 h-5 text-indigo-500" />
-                              Suggested Remedies & Dosages
-                            </h3>
-                            <button
-                              type="button"
-                              onClick={handleShareWhatsApp}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95"
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {suggestionsResult.suggestions.map((sug, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-6 bg-slate-50 dark:bg-slate-900 border border-l-4 rounded-2xl flex flex-col justify-between shadow-sm ${
+                                suggestionsResult.system === 'Ayurvedic'
+                                  ? 'border-l-green-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                  : suggestionsResult.system === 'Homeopathy'
+                                  ? 'border-l-amber-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                  : 'border-l-blue-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                              }`}
                             >
-                              Share on WhatsApp
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {suggestionsResult.suggestions.map((sug, idx) => (
-                              <div
-                                key={idx}
-                                className={`p-5 bg-slate-50 dark:bg-slate-900 border border-l-4 rounded-2xl flex flex-col justify-between ${
+                              <div className="space-y-1.5">
+                                <h4 className={`font-bold text-sm ${
                                   suggestionsResult.system === 'Ayurvedic'
-                                    ? 'border-l-green-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                    ? 'text-green-600 dark:text-green-400'
                                     : suggestionsResult.system === 'Homeopathy'
-                                    ? 'border-l-amber-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
-                                    : 'border-l-blue-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
-                                }`}
-                              >
-                                <div className="space-y-1.5">
-                                  <h4 className={`font-bold text-sm ${
-                                    suggestionsResult.system === 'Ayurvedic'
-                                      ? 'text-green-600 dark:text-green-400'
-                                      : suggestionsResult.system === 'Homeopathy'
-                                      ? 'text-amber-600 dark:text-amber-400'
-                                      : 'text-blue-600 dark:text-blue-400'
-                                  }`}>
-                                    {sug.medicine}
-                                  </h4>
-                                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                                    Purpose: <span className="text-slate-600 dark:text-slate-355 normal-case font-medium">{sug.purpose}</span>
-                                  </p>
-                                  <p className="text-xs text-slate-655 dark:text-slate-350 leading-relaxed font-semibold">
-                                    Dosage: <span className="text-slate-500 dark:text-slate-400 font-medium">{sug.dosage}</span>
-                                  </p>
-                                </div>
-                                <div className="mt-3 pt-2.5 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
-                                  <Clock className={`w-3.5 h-3.5 shrink-0 ${
-                                    suggestionsResult.system === 'Ayurvedic'
-                                      ? 'text-green-500'
-                                      : suggestionsResult.system === 'Homeopathy'
-                                      ? 'text-amber-500'
-                                      : 'text-blue-500'
-                                  }`} />
-                                  <span>{sug.timing}</span>
-                                </div>
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-blue-600 dark:text-blue-400'
+                                }`}>
+                                  {sug.medicine}
+                                </h4>
+                                <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                                  Purpose: <span className="text-slate-600 dark:text-slate-355 normal-case font-medium">{sug.purpose}</span>
+                                </p>
+                                <p className="text-xs text-slate-655 dark:text-slate-350 leading-relaxed font-semibold">
+                                  Dosage: <span className="text-slate-500 dark:text-slate-400 font-medium">{sug.dosage}</span>
+                                </p>
                               </div>
-                            ))}
-                          </div>
+                              <div className="mt-3 pt-2.5 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
+                                <Clock className={`w-3.5 h-3.5 shrink-0 ${
+                                  suggestionsResult.system === 'Ayurvedic'
+                                    ? 'text-green-500'
+                                    : suggestionsResult.system === 'Homeopathy'
+                                    ? 'text-amber-500'
+                                    : 'text-blue-500'
+                                }`} />
+                                <span>{sug.timing}</span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       ) : (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 text-center text-sm text-slate-500">
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 text-center text-sm text-slate-500">
                           No suggestions returned. Please refine your symptoms.
                         </div>
                       )}
 
-                      {/* Safety warnings list */}
+                      {/* Clinical warnings below */}
                       {suggestionsResult.warnings && suggestionsResult.warnings.length > 0 && (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 sm:p-8 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
                           <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-red-550" />
                             Clinical Safety Warnings
@@ -1643,24 +1740,32 @@ BMI: ${dietPlan.bmi}
                         </div>
                       )}
 
-                      {/* Prominent Safety Disclaimer Banner */}
-                      <div className="px-6 py-5 sm:p-8 bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-900/50 rounded-xl text-red-700 dark:text-red-400 font-bold text-xs leading-relaxed flex items-start gap-2.5 shadow-sm">
-                        <span className="shrink-0 text-sm">⚠️</span>
-                        <span>These are general suggestions only. Always consult a qualified doctor before taking any medication.</span>
+                      {/* WhatsApp share button bottom right */}
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleShareWhatsApp}
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95"
+                        >
+                          Share on WhatsApp
+                        </button>
                       </div>
 
-                      {/* Disclaimer banner */}
-                      <div className="px-6 py-5 sm:p-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-xl">
+                      {/* Disclaimer banner at very bottom */}
+                      <div className="px-6 py-5 sm:p-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-2xl">
                         <p className="text-amber-700/80 dark:text-amber-400/80 text-xs leading-relaxed">
                           <strong>Disclaimer:</strong> This recommendation report is generated by AI and is intended for educational purposes only.
                           It does not replace professional medical diagnosis or consultation.
                           Always consult a qualified doctor or physician before administering any new medicine, especially for children, pregnant women, or elderly patients.
                         </p>
                       </div>
+
                     </div>
                   )}
+
                 </div>
-              </div>
+              )}
+
             </div>
           )}
 
