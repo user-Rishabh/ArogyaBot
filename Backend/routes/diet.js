@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { getChatResponse } = require('../utils/claudeClient')
-console.log(response)
+
 
 router.post('/generate', async (req, res) => {
   try {
@@ -33,7 +33,7 @@ Respond in JSON format only (no markdown):
 }`
 
     const response = await getChatResponse(prompt, [])
-    
+    console.log(response)
     // Parse JSON from response
     const cleanResponse = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
     const dietPlan = JSON.parse(cleanResponse)
