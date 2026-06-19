@@ -465,7 +465,7 @@ JSON Schema:
 
     return text.charAt(0).toUpperCase() + text.slice(1)
   }
-
+const displayName = profile?.name || formatName(user?.email)
   const generateDietPlan = async () => {
   try {
     setDietLoading(true)
