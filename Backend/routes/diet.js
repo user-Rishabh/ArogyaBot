@@ -1,37 +1,47 @@
 const express = require('express')
 const router = express.Router()
+const { getChatResponse } = require('../utils/claudeClient')
+console.log(response)
 
 router.post('/generate', async (req, res) => {
   try {
     const { age, weight, height, goal, dietType } = req.body
 
-    const bmi = (
-      weight /
-      ((height / 100) * (height / 100))
-    ).toFixed(1)
+    const bmi = (weight / ((height / 100) * (height / 100))).toFixed(1)
 
-    let calories = 2000
+    const prompt = `Generate a personalized Indian diet plan for:
+- Age: ${age} years
+- Weight: ${weight} kg
+- Height: ${height} cm
+- BMI: ${bmi}
+- Goal: ${goal}
+- Diet Type: ${dietType || 'Vegetarian'}
 
-    if (goal === 'Weight Loss') calories = 1800
-    if (goal === 'Weight Gain') calories = 2500
+Respond in JSON format only (no markdown):
+{
+  "breakfast": "meal description",
+  "midMorning": "snack description", 
+  "lunch": "meal description",
+  "eveningSnack": "snack description",
+  "dinner": "meal description",
+  "calories": number,
+  "protein": "Xg",
+  "carbs": "Xg",
+  "fat": "Xg",
+  "waterIntake": "X Litres",
+  "bmi": "${bmi}"
+}`
 
-    res.json({
-      breakfast: 'Oats with fruits and milk',
-      lunch: 'Rice, dal, vegetables and salad',
-      snacks: 'Fruit bowl and nuts',
-      dinner: 'Chapati with vegetables and curd',
-      calories,
-      bmi,
-      waterIntake: '3 Litres',
-      protein: '80g',
-      carbs: '220g',
-      fat: '60g'
-    })
+    const response = await getChatResponse(prompt, [])
+    
+    // Parse JSON from response
+    const cleanResponse = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    const dietPlan = JSON.parse(cleanResponse)
+    
+    res.json(dietPlan)
   } catch (error) {
-    console.log(error)
-    res.status(500).json({
-      error: 'Failed to generate diet plan'
-    })
+    console.error('Diet error:', error)
+    res.status(500).json({ error: 'Failed to generate diet plan' })
   }
 })
 
