@@ -466,16 +466,14 @@ JSON Schema:
     return text.charAt(0).toUpperCase() + text.slice(1)
   }
 
-  const displayName = profile?.name || formatName(user?.email)
   const generateDietPlan = async () => {
   try {
     setDietLoading(true)
-
+    const apiURL = import.meta.env.VITE_API_URL || 'https://arogyabot-backend.onrender.com'
     const response = await axios.post(
-      'http://localhost:3000/api/diet/generate',
+      `${apiURL}/api/diet/generate`,
       dietData
     )
-
     setDietPlan(response.data)
   } catch (error) {
     console.error(error)
