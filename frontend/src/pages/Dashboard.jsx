@@ -660,96 +660,92 @@ JSON Schema:
 
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
           {/* Navigation Sidebar */}
-          <div className="w-full lg:w-64 shrink-0 flex flex-col justify-between lg:min-h-[520px] bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm p-4 lg:p-5 rounded-2xl border border-indigo-100/30 dark:border-slate-800/80 shadow-sm">
+          <div className="w-full lg:w-56 shrink-0 flex flex-col justify-between lg:min-h-[560px] bg-gradient-to-b from-white to-indigo-50/30 dark:from-slate-800 dark:to-slate-900 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-4 rounded-2xl border border-indigo-100 dark:border-slate-700 shadow-md">
             {/* Main Tabs Group */}
-            <div className="flex lg:flex-col flex-row flex-wrap gap-2 overflow-x-auto lg:overflow-x-visible scrollbar-hide w-full">
+            <div className="flex lg:flex-col flex-row flex-wrap gap-1 overflow-x-auto lg:overflow-x-visible scrollbar-hide w-full">
+              
+              {/* ArogyaBot mini logo + Menu label */}
+              <div className="hidden lg:flex items-center gap-2 px-3 pb-3 border-b border-indigo-100/50 dark:border-slate-700/50 mb-3 w-full">
+                <span className="text-xl">🤖</span>
+                <span className="font-extrabold text-sm text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-850 dark:from-indigo-400 dark:to-indigo-300">
+                  ArogyaBot
+                </span>
+                <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 dark:text-slate-500 ml-auto">
+                  Menu
+                </span>
+              </div>
+
               {[
                 { id: 'home', label: 'Overview', icon: Sparkles },
                 { id: 'chats', label: 'Recent Chats', icon: Clock, count: sessions.length },
                 { id: 'suggestions', label: 'Medicine Suggester', icon: Pill },
                 { id: 'diet', label: 'Diet Planner', icon: HeartPulse },
-                { id: 'tips', label: 'Tips & Guidelines', icon: Info },
                 { id: 'tools', label: 'Health Tools', icon: Activity },
                 { id: 'care', label: 'Care Finder', icon: MapPin },
+                { id: 'profile', label: 'Profile Settings', icon: User, divider: true },
+                { id: 'tips', label: 'Tips & Guidelines', icon: Info, divider: true },
               ].map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
                 return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      if (tab.id === 'care' && activeTab !== 'care') {
-                        setIsLocDetecting(true)
-                        setLocAllowed(null)
-                        setLocCoords({ lat: null, lng: null })
-                        setSearchCity('')
-                        setManualCity('')
-
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            setLocCoords({
-                              lat: position.coords.latitude,
-                              lng: position.coords.longitude
-                            })
-                            setLocAllowed(true)
-                            setIsLocDetecting(false)
-                          },
-                          (err) => {
-                            console.error('Geolocation error:', err)
-                            setLocAllowed(false)
-                            setIsLocDetecting(false)
-                          },
-                          { enableHighAccuracy: true, timeout: 10000 }
-                        )
-
-                        setShowAmbuAnimation(true)
-                        setTimeout(() => setShowAmbuAnimation(false), 2000)
-                      }
-                      setActiveTab(tab.id)
-                      setSaveMessage('')
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 w-full whitespace-nowrap text-left ${isActive
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-slate-800/60'
-                      }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="flex-1">{tab.label}</span>
-                    {tab.count !== undefined && tab.count > 0 && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all ${isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
-                        }`}>
-                        {tab.count}
-                      </span>
+                  <div key={tab.id} className="w-full">
+                    {tab.divider && (
+                      <div className="my-2 border-t border-indigo-100/50 dark:border-slate-750" />
                     )}
-                  </button>
+                    <button
+                      onClick={() => {
+                        if (tab.id === 'care' && activeTab !== 'care') {
+                          setIsLocDetecting(true)
+                          setLocAllowed(null)
+                          setLocCoords({ lat: null, lng: null })
+                          setSearchCity('')
+                          setManualCity('')
+
+                          navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                              setLocCoords({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                              })
+                              setLocAllowed(true)
+                              setIsLocDetecting(false)
+                            },
+                            (err) => {
+                              console.error('Geolocation error:', err)
+                              setLocAllowed(false)
+                              setIsLocDetecting(false)
+                            },
+                            { enableHighAccuracy: true, timeout: 10000 }
+                          )
+
+                          setShowAmbuAnimation(true)
+                          setTimeout(() => setShowAmbuAnimation(false), 2000)
+                        }
+                        setActiveTab(tab.id)
+                        setSaveMessage('')
+                      }}
+                      className={`flex items-center gap-3 py-3 px-4 rounded-xl font-medium text-sm transition-all w-full text-left ${
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-xl transition-all'
+                      }`}
+                    >
+                      <Icon className="w-[18px] h-[18px] shrink-0" />
+                      <span className="flex-1 truncate">{tab.label}</span>
+                      {tab.count !== undefined && tab.count > 0 && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all ${
+                          isActive
+                            ? 'bg-white/20 text-white'
+                            : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400'
+                        }`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  </div>
                 )
               })}
-            </div>
-            
-            {/* Profile Settings Tab (Fitted at the bottom-left on desktop) */}
-            <div className="mt-4 lg:mt-6 pt-4 border-t border-indigo-100/50 dark:border-slate-800/80 w-full">
-              {(() => {
-                const isActive = activeTab === 'profile'
-                return (
-                  <button
-                    onClick={() => {
-                      setActiveTab('profile')
-                      setSaveMessage('')
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 w-full text-left ${isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-slate-800/60'
-                    }`}
-                  >
-                    <User className="w-4 h-4 shrink-0" />
-                    <span>Profile Settings</span>
-                  </button>
-                )
-              })()}
             </div>
           </div>
 
