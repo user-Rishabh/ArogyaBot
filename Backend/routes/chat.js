@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
       }
     }
 
-    const botResponse = await getChatResponse(message, chatHistory, profile)
+    const botResponse = await getChatResponse(message, chatHistory, profile, language)
 
     if (sessionId) {
       try {

@@ -5,7 +5,7 @@ import {
   User, Sparkles, Clock, ChevronRight, Sun, Moon,
   Mail, AlertCircle, CheckCircle, Info, Trash2,
   Activity, MapPin, Search, Loader2, Pill, FlaskConical,
-  AlertTriangle, ShieldAlert
+  AlertTriangle, ShieldAlert, Download
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
@@ -13,6 +13,8 @@ import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
 import EmergencyNumbers from '../components/EmergencyNumbers'
 import BMICalculator from '../components/BMICalculator'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 const WHATSAPP_NUMBER = '14155238886'
 const WHATSAPP_DEFAULT_TEXT = 'Hello ArogyaBot! I would like to get some health guidance.'
@@ -144,6 +146,7 @@ const [weather, setWeather] = useState(null)
   const [suggestionsError, setSuggestionsError] = useState('')
   const [suggesterLang, setSuggesterLang] = useState('EN') // 'EN' or 'HI'
   const [suggestionsLoadingText, setSuggestionsLoadingText] = useState('Analyzing your symptoms...')
+  const [pdfGenerating, setPdfGenerating] = useState(false)
 
   useEffect(() => {
     let timeoutId
@@ -216,6 +219,52 @@ const [weather, setWeather] = useState(null)
     const summaryText = `ArogyaBot Remedy Report\nSymptoms: ${symptoms}\nSystem: ${medSystem}\n${remedyDetails}`
 
     window.open(`https://wa.me/?text=${encodeURIComponent(summaryText)}`, '_blank')
+  }
+
+  const generatePDF = async () => {
+    if (!suggestionsResult) return
+    setPdfGenerating(true)
+    try {
+      const element = document.getElementById('medicine-report')
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          clonedDoc.documentElement.classList.remove('dark')
+          clonedDoc.body.classList.remove('dark')
+        }
+      })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      
+      // Header
+      pdf.setFontSize(20)
+      pdf.setTextColor(67, 56, 202) // indigo
+      pdf.text('ArogyaBot Medical Report', 20, 20)
+      
+      pdf.setFontSize(10)
+      pdf.setTextColor(100, 100, 100)
+      pdf.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 20, 28)
+      
+      const age = userAge || profile?.age || 'Not provided'
+      pdf.text(`Patient: ${displayName} | Age: ${age}`, 20, 34)
+      
+      // Add report screenshot
+      const imgWidth = 170
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 20, 42, imgWidth, imgHeight)
+      
+      // Footer
+      pdf.setFontSize(8)
+      pdf.setTextColor(150, 150, 150)
+      pdf.text('Disclaimer: For informational purposes only. Consult a doctor before taking any medication.', 20, 285)
+      
+      pdf.save(`ArogyaBot_Report_${Date.now()}.pdf`)
+    } catch (err) {
+      console.error('Error generating PDF:', err)
+    } finally {
+      setPdfGenerating(false)
+    }
   }
 
   const handleGetSuggestions = async () => {
@@ -1757,113 +1806,143 @@ Diet: ${dietData.dietType}
                   {!suggestionsLoading && suggestionsResult && (
                     <div className="space-y-4">
                       
-                      {/* Header card with system name + colored theme */}
-                      <div className={`p-6 border border-l-4 rounded-2xl transition-all shadow-sm ${
-                        suggestionsResult.system === 'Ayurvedic'
-                          ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 border-l-green-500 text-green-700 dark:text-green-300'
-                          : suggestionsResult.system === 'Homeopathy'
-                          ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 border-l-amber-500 text-amber-700 dark:text-amber-300'
-                          : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 border-l-blue-500 text-blue-700 dark:text-blue-300'
-                      }`}>
-                        <div className="flex items-start gap-4">
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
-                            suggestionsResult.system === 'Ayurvedic'
-                              ? 'bg-green-500 text-white shadow-green-500/10'
-                              : suggestionsResult.system === 'Homeopathy'
-                              ? 'bg-amber-500 text-white shadow-amber-500/10'
-                              : 'bg-blue-500 text-white shadow-blue-500/10'
-                          }`}>
-                            <FlaskConical className="w-5 h-5" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white leading-tight flex items-center gap-2.5">
-                              <span>{suggestionsResult.system} Recommendations</span>
-                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-white/10 text-slate-700 dark:text-slate-300">
-                                {suggestionsResult.ageGroup} Profile
-                              </span>
-                            </h3>
-                            <p className="text-slate-655 dark:text-slate-300 text-sm leading-relaxed font-medium">
-                              {suggestionsResult.summary}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Remedy cards: grid grid-cols-1 md:grid-cols-2 gap-4 full width */}
-                      {suggestionsResult.suggestions && suggestionsResult.suggestions.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {suggestionsResult.suggestions.map((sug, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-6 bg-slate-50 dark:bg-slate-900 border border-l-4 rounded-2xl flex flex-col justify-between shadow-sm ${
-                                suggestionsResult.system === 'Ayurvedic'
-                                  ? 'border-l-green-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
-                                  : suggestionsResult.system === 'Homeopathy'
-                                  ? 'border-l-amber-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
-                                  : 'border-l-blue-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
-                              }`}
-                            >
-                              <div className="space-y-1.5">
-                                <h4 className={`font-display font-semibold text-sm ${
-                                  suggestionsResult.system === 'Ayurvedic'
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : suggestionsResult.system === 'Homeopathy'
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-blue-600 dark:text-blue-400'
-                                }`}>
-                                  {sug.medicine}
-                                </h4>
-                                <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                                  Purpose: <span className="text-slate-600 dark:text-slate-355 normal-case font-medium">{sug.purpose}</span>
-                                </p>
-                                <p className="text-xs text-slate-655 dark:text-slate-350 leading-relaxed font-semibold">
-                                  Dosage: <span className="text-slate-500 dark:text-slate-400 font-medium">{sug.dosage}</span>
-                                </p>
-                              </div>
-                              <div className="mt-3 pt-2.5 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
-                                <Clock className={`w-3.5 h-3.5 shrink-0 ${
-                                  suggestionsResult.system === 'Ayurvedic'
-                                    ? 'text-green-500'
-                                    : suggestionsResult.system === 'Homeopathy'
-                                    ? 'text-amber-500'
-                                    : 'text-blue-500'
-                                }`} />
-                                <span>{sug.timing}</span>
-                              </div>
+                      <div id="medicine-report" className="space-y-4 bg-white dark:bg-slate-900 p-2 rounded-2xl">
+                        {/* Header card with system name + colored theme */}
+                        <div className={`p-6 border border-l-4 rounded-2xl transition-all shadow-sm ${
+                          suggestionsResult.system === 'Ayurvedic'
+                            ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 border-l-green-500 text-green-700 dark:text-green-300'
+                            : suggestionsResult.system === 'Homeopathy'
+                            ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 border-l-amber-500 text-amber-700 dark:text-amber-300'
+                            : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 border-l-blue-500 text-blue-700 dark:text-blue-300'
+                        }`}>
+                          <div className="flex items-start gap-4">
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+                              suggestionsResult.system === 'Ayurvedic'
+                                ? 'bg-green-500 text-white shadow-green-500/10'
+                                : suggestionsResult.system === 'Homeopathy'
+                                ? 'bg-amber-500 text-white shadow-amber-500/10'
+                                : 'bg-blue-500 text-white shadow-blue-500/10'
+                            }`}>
+                              <FlaskConical className="w-5 h-5" />
                             </div>
-                          ))}
+                            <div className="space-y-1">
+                              <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white leading-tight flex items-center gap-2.5">
+                                <span>{suggestionsResult.system} Recommendations</span>
+                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-white/10 text-slate-700 dark:text-slate-300">
+                                  {suggestionsResult.ageGroup} Profile
+                                </span>
+                              </h3>
+                              <p className="text-slate-655 dark:text-slate-300 text-sm leading-relaxed font-medium">
+                                {suggestionsResult.summary}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 text-center text-sm text-slate-500">
-                          No suggestions returned. Please refine your symptoms.
-                        </div>
-                      )}
 
-                      {/* Clinical warnings below */}
-                      {suggestionsResult.warnings && suggestionsResult.warnings.length > 0 && (
-                        <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
-                          <h3 className="text-base font-display font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <AlertTriangle className="w-5 h-5 text-red-550" />
-                            Clinical Safety Warnings
-                          </h3>
-                          <div className="space-y-2">
-                            {suggestionsResult.warnings.map((warn, idx) => (
+                        {/* Remedy cards: grid grid-cols-1 md:grid-cols-2 gap-4 full width */}
+                        {suggestionsResult.suggestions && suggestionsResult.suggestions.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {suggestionsResult.suggestions.map((sug, idx) => (
                               <div
                                 key={idx}
-                                className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200/40 dark:border-red-900/40 rounded-xl"
+                                className={`p-6 bg-slate-50 dark:bg-slate-900 border border-l-4 rounded-2xl flex flex-col justify-between shadow-sm ${
+                                  suggestionsResult.system === 'Ayurvedic'
+                                    ? 'border-l-green-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                    : suggestionsResult.system === 'Homeopathy'
+                                    ? 'border-l-amber-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                    : 'border-l-blue-500 border-y-slate-100 border-r-slate-100 dark:border-y-slate-800/80 dark:border-r-slate-800/80'
+                                }`}
                               >
-                                <ShieldAlert className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                                <span className="text-xs text-red-700 dark:text-red-400 font-medium leading-relaxed">
-                                  {warn}
-                                </span>
+                                <div className="space-y-1.5">
+                                  <h4 className={`font-display font-semibold text-sm ${
+                                    suggestionsResult.system === 'Ayurvedic'
+                                      ? 'text-green-600 dark:text-green-400'
+                                      : suggestionsResult.system === 'Homeopathy'
+                                      ? 'text-amber-600 dark:text-amber-400'
+                                      : 'text-blue-600 dark:text-blue-400'
+                                  }`}>
+                                    {sug.medicine}
+                                  </h4>
+                                  <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                                    Purpose: <span className="text-slate-600 dark:text-slate-355 normal-case font-medium">{sug.purpose}</span>
+                                  </p>
+                                  <p className="text-xs text-slate-655 dark:text-slate-350 leading-relaxed font-semibold">
+                                    Dosage: <span className="text-slate-500 dark:text-slate-400 font-medium">{sug.dosage}</span>
+                                  </p>
+                                </div>
+                                <div className="mt-3 pt-2.5 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center gap-1.5 text-[11px] text-slate-400 font-bold uppercase">
+                                  <Clock className={`w-3.5 h-3.5 shrink-0 ${
+                                    suggestionsResult.system === 'Ayurvedic'
+                                      ? 'text-green-500'
+                                      : suggestionsResult.system === 'Homeopathy'
+                                      ? 'text-amber-500'
+                                      : 'text-blue-500'
+                                  }`} />
+                                  <span>{sug.timing}</span>
+                                </div>
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 text-center text-sm text-slate-500">
+                            No suggestions returned. Please refine your symptoms.
+                          </div>
+                        )}
 
-                      {/* WhatsApp share button bottom right */}
-                      <div className="flex justify-end">
+                        {/* Clinical warnings below */}
+                        {suggestionsResult.warnings && suggestionsResult.warnings.length > 0 && (
+                          <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+                            <h3 className="text-base font-display font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                              <AlertTriangle className="w-5 h-5 text-red-550" />
+                              Clinical Safety Warnings
+                            </h3>
+                            <div className="space-y-2">
+                              {suggestionsResult.warnings.map((warn, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200/40 dark:border-red-900/40 rounded-xl"
+                                >
+                                  <ShieldAlert className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                                  <span className="text-xs text-red-700 dark:text-red-400 font-medium leading-relaxed">
+                                    {warn}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Disclaimer banner at very bottom */}
+                        <div className="px-6 py-5 sm:p-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-2xl">
+                          <p className="text-amber-700/80 dark:text-amber-400/80 text-xs leading-relaxed">
+                            <strong>Disclaimer:</strong> This recommendation report is generated by AI and is intended for educational purposes only.
+                            It does not replace professional medical diagnosis or consultation.
+                            Always consult a qualified doctor or physician before administering any new medicine, especially for children, pregnant women, or elderly patients.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action buttons (WhatsApp + Download PDF) */}
+                      <div className="flex justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={generatePDF}
+                          disabled={pdfGenerating}
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {pdfGenerating ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Generating PDF...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download PDF Report</span>
+                            </>
+                          )}
+                        </button>
+
                         <button
                           type="button"
                           onClick={handleShareWhatsApp}
@@ -1871,15 +1950,6 @@ Diet: ${dietData.dietType}
                         >
                           Share on WhatsApp
                         </button>
-                      </div>
-
-                      {/* Disclaimer banner at very bottom */}
-                      <div className="px-6 py-5 sm:p-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40 rounded-2xl">
-                        <p className="text-amber-700/80 dark:text-amber-400/80 text-xs leading-relaxed">
-                          <strong>Disclaimer:</strong> This recommendation report is generated by AI and is intended for educational purposes only.
-                          It does not replace professional medical diagnosis or consultation.
-                          Always consult a qualified doctor or physician before administering any new medicine, especially for children, pregnant women, or elderly patients.
-                        </p>
                       </div>
 
                     </div>
