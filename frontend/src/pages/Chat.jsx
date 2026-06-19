@@ -11,6 +11,134 @@ import { useSpeech } from '../hooks/useSpeech'
 import { supabase } from '../lib/supabase'
 import healthData from '../data/healthData.json'
 
+const generateOpeningMessage = (profile, language = 'en') => {
+  const lang = (language || 'en').toLowerCase()
+  const name = (profile && profile.name) ? profile.name : (lang === 'hi' ? 'उपयोगकर्ता' : 'User')
+  
+  // Time-based greeting
+  const hr = new Date().getHours()
+  let greeting = ''
+  if (lang === 'hi') {
+    if (hr < 12) greeting = 'शुभ प्रभात'
+    else if (hr < 17) greeting = 'नमस्कार'
+    else greeting = 'शुभ संध्या'
+  } else {
+    if (hr < 12) greeting = 'Good morning'
+    else if (hr < 17) greeting = 'Good afternoon'
+    else greeting = 'Good evening'
+  }
+
+  const age = profile && profile.age ? parseFloat(profile.age) : NaN
+  const weight = profile && profile.weight ? parseFloat(profile.weight) : NaN
+  const height = profile && profile.height ? parseFloat(profile.height) : NaN
+
+  const hasProfileData = !isNaN(age) && !isNaN(weight) && !isNaN(height) && height > 0
+
+  let healthProfileSection = ''
+
+  if (hasProfileData) {
+    const calculatedBmi = (weight / Math.pow(height / 100, 2)).toFixed(1)
+    const bmiVal = parseFloat(calculatedBmi)
+    
+    let bmiCategory = ''
+    let insight = ''
+
+    if (lang === 'hi') {
+      if (bmiVal < 18.5) {
+        bmiCategory = 'अंडरवेट (कम वजन)'
+        insight = 'सुझाव: आपके बीएमआई (BMI) के आधार पर, स्वस्थ मांसपेशियां बनाने में मदद के लिए प्रोटीन युक्त आहार लेने की सलाह दी जाती है।'
+      } else if (bmiVal >= 18.5 && bmiVal < 25) {
+        bmiCategory = 'नॉर्मल (सामान्य)'
+        insight = 'सुझाव: आपके बीएमआई (BMI) के आधार पर, आपका वजन स्वस्थ सीमा में है! इसे बनाए रखने के लिए संतुलित आहार और स्वस्थ जीवनशैली जारी रखें।'
+      } else if (bmiVal >= 25 && bmiVal < 30) {
+        bmiCategory = 'ओवरवेट (अधिक वजन)'
+        insight = 'सुझाव: आपके बीएमआई (BMI) के आधार पर, अपनी दैनिक दिनचर्या में हल्का व्यायाम (जैसे 30 मिनट की तेज़ सैर) शामिल करने की सलाह दी जाती है।'
+      } else {
+        bmiCategory = 'ओबीस (मोटापा)'
+        insight = 'सुझाव: आपके बीएमआई (BMI) के आधार पर, अपनी दैनिक दिनचर्या में हल्का व्यायाम (जैसे 30 मिनट की तेज़ सैर) शामिल करने की सलाह दी जाती है।'
+      }
+
+      const conditions = (profile.conditions && profile.conditions.trim()) ? profile.conditions : 'कोई रिपोर्ट नहीं की गई'
+
+      healthProfileSection = `📋 आपका स्वास्थ्य प्रोफ़ाइल:
+- उम्र: ${profile.age} वर्ष
+- वजन: ${profile.weight} kg
+- ऊंचाई: ${profile.height} cm
+- बीएमआई (BMI): ${calculatedBmi} (${bmiCategory})
+- स्वास्थ्य स्थितियां: ${conditions}
+
+${insight}`
+    } else {
+      if (bmiVal < 18.5) {
+        bmiCategory = 'Underweight'
+        insight = 'Tip: Based on your BMI, a protein-rich diet is suggested to help you build healthy muscle mass.'
+      } else if (bmiVal >= 18.5 && bmiVal < 25) {
+        bmiCategory = 'Normal'
+        insight = 'Tip: Based on your BMI, your weight is in the healthy range! Keep up the good work and maintain a balanced diet.'
+      } else if (bmiVal >= 25 && bmiVal < 30) {
+        bmiCategory = 'Overweight'
+        insight = 'Tip: Based on your BMI, incorporating light exercise (like a 30-minute brisk walk) into your daily routine is suggested.'
+      } else {
+        bmiCategory = 'Obese'
+        insight = 'Tip: Based on your BMI, incorporating light exercise (like a 30-minute brisk walk) into your daily routine is suggested.'
+      }
+
+      const conditions = (profile.conditions && profile.conditions.trim()) ? profile.conditions : 'None reported'
+
+      healthProfileSection = `📋 Your Health Profile:
+- Age: ${profile.age} years
+- Weight: ${profile.weight} kg
+- Height: ${profile.height} cm
+- BMI: ${calculatedBmi} (${bmiCategory})
+- Health Conditions: ${conditions}
+
+${insight}`
+    }
+  } else {
+    if (lang === 'hi') {
+      healthProfileSection = `कृपया सेटिंग्स में अपना स्वास्थ्य प्रोफ़ाइल (उम्र, वजन, ऊंचाई) पूरा करें ताकि मैं आपको व्यक्तिगत स्वास्थ्य अंतर्दृष्टि प्रदान कर सकूं!`
+    } else {
+      healthProfileSection = `Please complete your health profile (Age, Weight, Height) in settings so I can provide personalized health insights!`
+    }
+  }
+
+  if (lang === 'hi') {
+    return `🙏 ${greeting}! ArogyaBot में आपका स्वागत है, ${name}!
+
+मैं आपका व्यक्तिगत एआई स्वास्थ्य सहायक हूँ, यहाँ स्वास्थ्य जानकारी, लक्षणों और कल्याण मार्गदर्शन में आपकी सहायता के लिए हूँ।
+
+${healthProfileSection}
+
+━━━━━━━━━━━━━━━
+
+💬 आज मैं आपकी कैसे मदद कर सकता हूँ?
+- 🤒 अपने लक्षणों के बारे में बताएं
+- 💊 दवाओं या उपचार के बारे में पूछें
+- 🥗 आहार या पोषण संबंधी सलाह लें
+- 🏥 नजदीकी अस्पताल खोजें
+- 📋 सामान्य स्वास्थ्य प्रश्न
+
+कृपया मुझे बताएं कि आपको क्या परेशानी है, और मैं मदद करने की पूरी कोशिश करूँगा! याद रखें, मैं सामान्य स्वास्थ्य जानकारी प्रदान करता हूँ — चिकित्सा निर्णयों के लिए हमेशा डॉक्टर से परामर्श करें।`
+  } else {
+    return `🙏 ${greeting}! Welcome to ArogyaBot, ${name}!
+
+I'm your personal AI health assistant, here to help you with health information, symptoms, and wellness guidance.
+
+${healthProfileSection}
+
+━━━━━━━━━━━━━━━
+
+💬 How can I help you today?
+- 🤒 Describe your symptoms
+- 💊 Ask about medicines or treatments
+- 🥗 Get diet or nutrition advice
+- 🏥 Find nearby hospitals
+- 📋 General health queries
+
+Please tell me what's bothering you, and I'll do my best to help! Remember, I provide general health information — always consult a doctor for medical decisions.`
+  }
+}
+
 const buildSystemPrompt = (profile = null) => {
   const diseaseNames = healthData.diseases.map(d => d.name).join(', ')
   const vaccineNames = healthData.vaccines.map(v => v.name).join(', ')
@@ -54,7 +182,15 @@ RULES:
 6. Never diagnose — only provide general awareness information.
 7. Be warm and supportive in tone.
 8. Always consider their age, weight, and BMI when giving advice.
-9. Give personalized remedies based on their profile.`
+9. Give personalized remedies based on their profile.
+10. When a new chat session starts (no chat history), AI should send a structured opening message matching:
+    - Welcome greeting using the user's name.
+    - Time-based greeting: "Good morning" before 12pm, "Good afternoon" between 12-5pm, and "Good evening" after 5pm (or Hindi equivalents).
+    - Under "📋 Your Health Profile", list Age, Weight, Height, BMI (rounded to 1 decimal with category: Underweight (<18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (30+)), and Health Conditions (or 'None reported').
+    - If any of age/weight/height are missing, skip the "📋 Your Health Profile" section entirely and ask the user to complete their profile.
+    - Provide a personalized insight: suggest a protein-rich diet if underweight, light exercise if overweight/obese, and appreciate/suggest maintenance if normal.
+    - Offer standard help suggestions and a medical disclaimer.
+    - Always respond in the user's preferred language.`
 }
 
 const getGeminiResponse = async (userMessage, chatHistory = [], profile = null) => {
@@ -168,54 +304,11 @@ const getGreetingTimeOfDay = () => {
 }
 
 const getMockGreeting = (profile, lang) => {
-  const userName = profile?.name || 'User'
-  const timeOfDay = getGreetingTimeOfDay()
-  let tip = ''
-  
-  if (lang === 'hi') {
-    const timeOfDayHi = timeOfDay === 'morning' ? 'शुभ प्रभात' : timeOfDay === 'afternoon' ? 'नमस्कार' : 'शुभ संध्या'
-    if (profile?.conditions) {
-      tip = `चूंकि आपको ${profile.conditions} है, कृपया समय पर अपनी दवाएं लें और पर्याप्त पानी पिएं।`
-    } else if (profile?.age && parseInt(profile.age) > 50) {
-      tip = `उम्र के इस पड़ाव में रोजाना हल्की सैर करें और जोड़ों के स्वास्थ्य का ध्यान रखें।`
-    } else {
-      tip = `स्वस्थ रहने के लिए संतुलित आहार लें और रोजाना व्यायाम करें।`
-    }
-    return `${timeOfDayHi} ${userName}! आपके प्रोफाइल के अनुसार, ${tip} आज आप कैसा महसूस कर रहे हैं? कोई विशेष स्वास्थ्य चिंता?`
-  } else {
-    if (profile?.conditions) {
-      tip = `since you have ${profile.conditions}, make sure to monitor your symptoms closely and stay hydrated.`
-    } else if (profile?.age && parseInt(profile.age) > 50) {
-      tip = `regular light exercise and maintaining joint mobility is key for healthy aging.`
-    } else {
-      tip = `maintaining a balanced diet and exercising regularly is essential for your overall well-being.`
-    }
-    return `Good ${timeOfDay} ${userName}! Based on your profile, ${tip} How are you feeling today? Any specific health concerns?`
-  }
+  return generateOpeningMessage(profile, lang)
 }
 
 const generateWelcomeGreeting = async (profile, lang) => {
-  const timeOfDay = getGreetingTimeOfDay()
-  const userName = profile?.name || 'User'
-  const prompt = `Generate a welcome greeting from ArogyaBot.
-The user's profile is:
-Name: ${userName}
-Age: ${profile?.age || 'Not provided'}
-Weight: ${profile?.weight ? profile.weight + 'kg' : 'Not provided'}
-Height: ${profile?.height ? profile.height + 'cm' : 'Not provided'}
-Gender: ${profile?.gender || 'Not provided'}
-Conditions: ${profile?.conditions || 'None'}
-
-Please construct the greeting EXACTLY matching this structure:
-"Good ${timeOfDay} ${userName}! Based on your profile, [one personalized health tip based on their age, weight, and conditions (mentioning relevant details if any)]. How are you feeling today? Any specific health concerns?"
-
-Requirements:
-1. Respond in ${lang === 'hi' ? 'Hindi (हिंदी)' : 'English'}.
-2. Keep it under 60 words, warm, simple, and clear.
-3. If language is Hindi, translate the entire greeting naturally (e.g. Good morning -> शुभ प्रभात or नमस्ते, but keep the core structured greeting).
-4. Do not include any extra text, comments, markdown, or warnings. Just output the greeting itself.`
-
-  return await getGeminiResponse(prompt, [], profile)
+  return generateOpeningMessage(profile, lang)
 }
 
 
