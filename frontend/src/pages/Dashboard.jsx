@@ -707,7 +707,7 @@ const displayName = profile?.name || formatName(user?.email)
                 { id: 'tips', label: 'Tips & Guidelines', icon: Info },
                 { id: 'tools', label: 'Health Tools', icon: Activity },
                 { id: 'care', label: 'Care Finder', icon: MapPin },
-                { id: 'tips', label: 'Tips & Guidelines', icon: Info },
+                
               ].map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
