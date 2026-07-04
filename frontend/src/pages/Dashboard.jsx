@@ -5,7 +5,7 @@ import {
   User, Sparkles, Clock, ChevronRight, Sun, Moon,
   Mail, AlertCircle, CheckCircle, Info, Trash2,
   Activity, MapPin, Search, Loader2, Pill, FlaskConical,
-  AlertTriangle, ShieldAlert, Download
+  AlertTriangle, ShieldAlert, Download, FileUp, ScanLine, X, FileText, CheckCircle2, RotateCcw
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
@@ -13,6 +13,7 @@ import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
 import EmergencyNumbers from '../components/EmergencyNumbers'
 import BMICalculator from '../components/BMICalculator'
+import ReportAnalyzer from '../components/ReportAnalyzer';
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 
@@ -783,6 +784,7 @@ const displayName = profile?.name || formatName(user?.email)
                 { id: 'tips', label: 'Tips & Guidelines', icon: Info },
                 { id: 'tools', label: 'Health Tools', icon: Activity },
                 { id: 'care', label: 'Care Finder', icon: MapPin },
+                { id: 'report', label: 'Report Analyzer', icon: FileUp },
                 
               ].map((tab) => {
                 const Icon = tab.icon
@@ -1350,6 +1352,10 @@ const displayName = profile?.name || formatName(user?.email)
                 </div>
               )}
             </div>
+          )}
+          {/* Report Analyzer Tab */}
+          {activeTab === 'report' && (
+            <ReportAnalyzer isDarkMode={theme === 'dark'} />
           )}
         {activeTab === 'diet' && (
           <div className="animate-tab-fade-in max-w-3xl mx-auto space-y-4">
