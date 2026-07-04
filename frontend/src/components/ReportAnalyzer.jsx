@@ -1,7 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
+import axios from 'axios';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import {
   FileUp, ScanLine, X, AlertTriangle, HeartPulse,
-  FileText, CheckCircle2, RotateCcw
+  FileText, CheckCircle2, RotateCcw, Download, Loader2
 } from 'lucide-react';
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -41,7 +44,8 @@ Analyze the uploaded medical report (lab report, prescription, scan summary, etc
   "disclaimer": "string - standard medical disclaimer stating this is not a diagnosis"
 }
 
-Be accurate, cautious, and clear. If the document is not a medical report, set riskLevel to "normal" and explain in "summary" that no medical data was found.`;
+Be accurate, cautious, and clear. If the document is not a medical report, set riskLevel to "normal" and explain in "summary" that no medical data was found.
+Respond with raw JSON only — no markdown code fences, no commentary before or after.`;
 
 export default function ReportAnalyzer({ isDarkMode }) {
   const [file, setFile] = useState(null);
@@ -51,6 +55,7 @@ export default function ReportAnalyzer({ isDarkMode }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const fileInputRef = useRef(null);
   const progressIntervalRef = useRef(null);
 
@@ -97,10 +102,12 @@ export default function ReportAnalyzer({ isDarkMode }) {
     setIsDragging(false);
   };
 
-  const fileToBase64 = (f) => {
+  // Returns a full data URI (e.g. "data:image/png;base64,...."), which is what
+  // OpenRouter's OpenAI-compatible content parts expect.
+  const fileToDataUri = (f) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onload = () => resolve(reader.result);
       reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsDataURL(f);
     });
@@ -114,6 +121,28 @@ export default function ReportAnalyzer({ isDarkMode }) {
     setError('');
     setProgressStep(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const buildContentParts = (dataUri, mimeType) => {
+    // Images use the standard "image_url" content part.
+    if (mimeType.startsWith('image/')) {
+      return [
+        { type: 'text', text: SYSTEM_PROMPT },
+        { type: 'image_url', image_url: { url: dataUri } },
+      ];
+    }
+    // PDFs use the "file" content part (OpenAI-compatible models on OpenRouter,
+    // e.g. Gemini and some GPT-4o variants, support this).
+    return [
+      { type: 'text', text: SYSTEM_PROMPT },
+      {
+        type: 'file',
+        file: {
+          filename: 'report.pdf',
+          file_data: dataUri,
+        },
+      },
+    ];
   };
 
   const handleAnalyze = async () => {
@@ -132,47 +161,42 @@ export default function ReportAnalyzer({ isDarkMode }) {
     }, 2500);
 
     try {
-      const base64Data = await fileToBase64(file);
-      const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      const model = import.meta.env.VITE_OPENROUTER_VISION_MODEL || import.meta.env.VITE_OPENROUTER_MODEL;
 
       if (!apiKey) {
         throw new Error('API key not configured. Please contact support.');
       }
+      if (!model) {
+        throw new Error('No vision-capable model configured.');
+      }
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      const dataUri = await fileToDataUri(file);
+      const contentParts = buildContentParts(dataUri, file.type);
+
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: SYSTEM_PROMPT },
-                  {
-                    inlineData: {
-                      mimeType: file.type,
-                      data: base64Data,
-                    },
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.3,
-              responseMimeType: 'application/json',
+          model,
+          messages: [
+            {
+              role: 'user',
+              content: contentParts,
             },
-          }),
+          ],
+          temperature: 0.3,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'ArogyaBot Report Analyzer',
+          },
         }
       );
 
-      if (!response.ok) {
-        const errBody = await response.json().catch(() => ({}));
-        throw new Error(errBody?.error?.message || `Request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const rawText = response?.data?.choices?.[0]?.message?.content;
 
       if (!rawText) {
         throw new Error('No response received from the analyzer. Please try again.');
@@ -186,12 +210,75 @@ export default function ReportAnalyzer({ isDarkMode }) {
       console.error('Report analysis error:', err);
       if (err instanceof SyntaxError) {
         setError('Could not parse the analysis. Please try again.');
+      } else if (err.response?.status === 400 && file.type === 'application/pdf') {
+        setError('This model does not support PDF input. Try a different file or contact support to switch models.');
+      } else if (err.response?.data?.error?.message) {
+        setError(err.response.data.error.message);
       } else {
         setError(err.message || 'Something went wrong while analyzing the report.');
       }
     } finally {
       clearInterval(progressIntervalRef.current);
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!result) return;
+    setDownloading(true);
+    try {
+      const element = document.getElementById('report-analysis-output');
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          clonedDoc.documentElement.classList.remove('dark');
+          clonedDoc.body.classList.remove('dark');
+        }
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 20;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Header on first page
+      pdf.setFontSize(18);
+      pdf.setTextColor(67, 56, 202);
+      pdf.text('ArogyaBot Report Analysis', margin, 18);
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated: ${new Date().toLocaleString('en-IN')}`, margin, 25);
+
+      let heightLeft = imgHeight;
+      let position = 32;
+
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - position);
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text(
+        'Disclaimer: AI-generated analysis for informational purposes only. Not a substitute for professional medical advice.',
+        margin,
+        pageHeight - 10
+      );
+
+      pdf.save(`ArogyaBot_Report_Analysis_${Date.now()}.pdf`);
+    } catch (err) {
+      console.error('Error generating report PDF:', err);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -308,6 +395,7 @@ export default function ReportAnalyzer({ isDarkMode }) {
 
       {result && !loading && (
         <div className="space-y-4">
+        <div id="report-analysis-output" className="space-y-4 bg-white dark:bg-slate-900 p-2 rounded-2xl">
           <ResultSection icon="🧾" title="Report Summary" delay={0}>
             <p className="text-slate-600 dark:text-slate-300">{result.summary}</p>
           </ResultSection>
@@ -369,13 +457,31 @@ export default function ReportAnalyzer({ isDarkMode }) {
           <ResultSection icon="⚠️" title="Disclaimer" delay={550}>
             <p className="text-sm text-slate-400 dark:text-slate-500 italic">{result.disclaimer}</p>
           </ResultSection>
+        </div>
 
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl py-3 font-extrabold transition-all"
+          >
+            {downloading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Preparing PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" /> Download PDF Report
+              </>
+            )}
+          </button>
           <button
             onClick={handleReset}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl py-3 font-extrabold hover:from-indigo-700 hover:to-indigo-800 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl py-3 font-extrabold hover:from-indigo-700 hover:to-indigo-800 transition-all"
           >
             <RotateCcw className="h-4 w-4" /> Analyze Another Report
           </button>
+        </div>
         </div>
       )}
     </div>

@@ -764,8 +764,7 @@ const displayName = profile?.name || formatName(user?.email)
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Navigation Sidebar */}
-          <div className="w-full lg:w-64 lg:min-w-[220px] shrink-0 flex flex-col justify-between lg:min-h-[560px] bg-gradient-to-b from-indigo-600 to-violet-700 p-4 rounded-2xl border border-white/10 shadow-xl">
-            
+         <div className="w-full lg:w-64 lg:min-w-[220px] shrink-0 flex flex-col justify-between lg:min-h-[560px] bg-gradient-to-b from-indigo-600 to-violet-700 p-4 rounded-2xl border border-white/10 shadow-xl lg:sticky lg:top-24 lg:self-start">
             {/* Top Section */}
             <div className="flex lg:flex-col flex-row flex-wrap gap-1 overflow-x-auto lg:overflow-x-visible scrollbar-hide w-full flex-1">
               {/* ArogyaBot mini logo */}
