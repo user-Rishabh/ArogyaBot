@@ -25,28 +25,6 @@ const RISK_STYLES = {
   critical: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', emoji: '🔴', label: 'Critical' },
 };
 
-const SYSTEM_PROMPT = `You are a medical report analysis assistant for a public health awareness app used in India.
-Analyze the uploaded medical report (lab report, prescription, scan summary, etc.) and respond with ONLY a valid JSON object (no markdown fences, no extra text) with EXACTLY these keys:
-
-{
-  "summary": "string - 2-3 sentence summary of the report",
-  "plainExplanation": "string - explain the report in simple, non-technical language a layperson can understand",
-  "findings": [{"name": "string", "value": "string", "status": "normal|abnormal|critical", "note": "string"}],
-  "bodyChanges": "string - what is happening in the body based on these results",
-  "possibleCauses": ["string"],
-  "symptoms": ["string - symptoms the person may experience"],
-  "lifestyleImprovements": ["string"],
-  "foodsToEat": ["string"],
-  "foodsToAvoid": ["string"],
-  "medicineAnalysis": "string or null - only if medicines/prescriptions are detected in the report",
-  "riskLevel": "normal|mild|moderate|critical",
-  "doctorRecommendation": "string - whether and when to see a doctor",
-  "disclaimer": "string - standard medical disclaimer stating this is not a diagnosis"
-}
-
-Be accurate, cautious, and clear. If the document is not a medical report, set riskLevel to "normal" and explain in "summary" that no medical data was found.
-Respond with raw JSON only — no markdown code fences, no commentary before or after.`;
-
 export default function ReportAnalyzer({ isDarkMode }) {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -102,8 +80,7 @@ export default function ReportAnalyzer({ isDarkMode }) {
     setIsDragging(false);
   };
 
-  // Returns a full data URI (e.g. "data:image/png;base64,...."), which is what
-  // OpenRouter's OpenAI-compatible content parts expect.
+  // Returns a full data URI (e.g. "data:image/png;base64,....") for the backend.
   const fileToDataUri = (f) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -123,28 +100,6 @@ export default function ReportAnalyzer({ isDarkMode }) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const buildContentParts = (dataUri, mimeType) => {
-    // Images use the standard "image_url" content part.
-    if (mimeType.startsWith('image/')) {
-      return [
-        { type: 'text', text: SYSTEM_PROMPT },
-        { type: 'image_url', image_url: { url: dataUri } },
-      ];
-    }
-    // PDFs use the "file" content part (OpenAI-compatible models on OpenRouter,
-    // e.g. Gemini and some GPT-4o variants, support this).
-    return [
-      { type: 'text', text: SYSTEM_PROMPT },
-      {
-        type: 'file',
-        file: {
-          filename: 'report.pdf',
-          file_data: dataUri,
-        },
-      },
-    ];
-  };
-
   const handleAnalyze = async () => {
     if (!file) {
       setError('Please upload a report first.');
@@ -161,59 +116,23 @@ export default function ReportAnalyzer({ isDarkMode }) {
     }, 2500);
 
     try {
-      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-      const model = import.meta.env.VITE_OPENROUTER_VISION_MODEL || import.meta.env.VITE_OPENROUTER_MODEL;
-
-      if (!apiKey) {
-        throw new Error('API key not configured. Please contact support.');
-      }
-      if (!model) {
-        throw new Error('No vision-capable model configured.');
-      }
-
+      const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
       const dataUri = await fileToDataUri(file);
-      const contentParts = buildContentParts(dataUri, file.type);
+      const response = await axios.post(`${apiURL}/report-analyzer`, {
+        dataUri,
+        mimeType: file.type,
+        fileName: file.name,
+      });
 
-      const response = await axios.post(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          model,
-          messages: [
-            {
-              role: 'user',
-              content: contentParts,
-            },
-          ],
-          temperature: 0.3,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'ArogyaBot Report Analyzer',
-          },
-        }
-      );
-
-      const rawText = response?.data?.choices?.[0]?.message?.content;
-
-      if (!rawText) {
+      if (!response?.data) {
         throw new Error('No response received from the analyzer. Please try again.');
       }
 
-      const cleaned = rawText.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-
-      setResult(parsed);
+      setResult(response.data);
     } catch (err) {
       console.error('Report analysis error:', err);
-      if (err instanceof SyntaxError) {
-        setError('Could not parse the analysis. Please try again.');
-      } else if (err.response?.status === 400 && file.type === 'application/pdf') {
-        setError('This model does not support PDF input. Try a different file or contact support to switch models.');
-      } else if (err.response?.data?.error?.message) {
-        setError(err.response.data.error.message);
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
       } else {
         setError(err.message || 'Something went wrong while analyzing the report.');
       }
