@@ -11,17 +11,15 @@ const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png
 const MAX_SIZE_MB = 10;
 
 const LOADING_STEPS = [
-  'Reading your report...',
-  'Extracting text and values...',
-  'Analyzing findings...',
-  'Preparing plain-language explanation...',
-  'Finalizing recommendations...'
+  'Compressing...',
+  'Reading PDF...',
+  'Analyzing...',
+  'Generating Report...'
 ];
 
 const RISK_STYLES = {
   normal:   { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', emoji: '🟢', label: 'Normal' },
-  mild:     { color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20', emoji: '🟡', label: 'Mild' },
-  moderate: { color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20', emoji: '🟠', label: 'Moderate' },
+  abnormal: { color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20', emoji: '🟡', label: 'Abnormal' },
   critical: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', emoji: '🔴', label: 'Critical' },
 };
 
@@ -29,6 +27,7 @@ export default function ReportAnalyzer({ isDarkMode }) {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [progressStep, setProgressStep] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -80,16 +79,6 @@ export default function ReportAnalyzer({ isDarkMode }) {
     setIsDragging(false);
   };
 
-  // Returns a full data URI (e.g. "data:image/png;base64,....") for the backend.
-  const fileToDataUri = (f) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(f);
-    });
-  };
-
   const handleReset = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(null);
@@ -97,6 +86,7 @@ export default function ReportAnalyzer({ isDarkMode }) {
     setResult(null);
     setError('');
     setProgressStep(0);
+    setUploadProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -110,18 +100,25 @@ export default function ReportAnalyzer({ isDarkMode }) {
     setError('');
     setResult(null);
     setProgressStep(0);
+    setUploadProgress(0);
+
+    const formData = new FormData();
+    formData.append('report', file);
 
     progressIntervalRef.current = setInterval(() => {
       setProgressStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 2500);
+    }, 3000);
 
     try {
       const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-      const dataUri = await fileToDataUri(file);
-      const response = await axios.post(`${apiURL}/report-analyzer`, {
-        dataUri,
-        mimeType: file.type,
-        fileName: file.name,
+      const response = await axios.post(`${apiURL}/report-analyzer`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        }
       });
 
       if (!response?.data) {
@@ -131,14 +128,25 @@ export default function ReportAnalyzer({ isDarkMode }) {
       setResult(response.data);
     } catch (err) {
       console.error('Report analysis error:', err);
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
+      if (err.response) {
+        if (err.response.status === 413) {
+          setError('Please upload a report smaller than 10 MB.');
+        } else if (err.response.status === 415) {
+          setError('Unsupported file type. Please upload a PDF, JPG, PNG, or WEBP file.');
+        } else if (err.response.data?.error) {
+          setError(err.response.data.error);
+        } else {
+          setError(`Server error (${err.response.status}). Please try again later.`);
+        }
+      } else if (err.request) {
+        setError('Network error. Please check your internet connection.');
       } else {
         setError(err.message || 'Something went wrong while analyzing the report.');
       }
     } finally {
       clearInterval(progressIntervalRef.current);
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -289,13 +297,28 @@ export default function ReportAnalyzer({ isDarkMode }) {
 
       {loading && (
         <div className="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-10 shadow-sm text-center animate-card-fade-in opacity-0">
-          <div className="relative inline-block">
+          <div className="relative inline-block mb-4">
             <HeartPulse className="h-14 w-14 text-indigo-500 animate-pulse mx-auto" />
             <ScanLine className="h-14 w-14 text-indigo-300 absolute top-0 left-0 animate-scan-line" />
           </div>
-          <p className="mt-4 font-semibold text-slate-700 dark:text-slate-200">
-            {LOADING_STEPS[progressStep]}
-          </p>
+          
+          {uploadProgress < 100 ? (
+            <div>
+              <p className="font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                Uploading... {uploadProgress}%
+              </p>
+              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                <div 
+                  className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          ) : (
+            <p className="font-semibold text-slate-700 dark:text-slate-200">
+              {LOADING_STEPS[progressStep]}
+            </p>
+          )}
         </div>
       )}
 
@@ -315,16 +338,18 @@ export default function ReportAnalyzer({ isDarkMode }) {
       {result && !loading && (
         <div className="space-y-4">
         <div id="report-analysis-output" className="space-y-4 bg-white dark:bg-slate-900 p-2 rounded-2xl">
+          {result.reportType && (
+             <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 px-4 pt-2">
+               Report Type: {result.reportType}
+             </h3>
+          )}
+          
           <ResultSection icon="🧾" title="Report Summary" delay={0}>
             <p className="text-slate-600 dark:text-slate-300">{result.summary}</p>
           </ResultSection>
 
-          <ResultSection icon="📖" title="Normal Language Explanation" delay={50}>
-            <p className="text-slate-600 dark:text-slate-300">{result.plainExplanation}</p>
-          </ResultSection>
-
           {Array.isArray(result.findings) && result.findings.length > 0 && (
-            <ResultSection icon="⚠️" title="Important Findings" delay={100}>
+            <ResultSection icon="⚠️" title="Important Findings" delay={50}>
               <div className="space-y-2">
                 {result.findings.map((f, i) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
@@ -342,40 +367,27 @@ export default function ReportAnalyzer({ isDarkMode }) {
             </ResultSection>
           )}
 
-          <ResultSection icon="🫀" title="Body Changes" delay={150}>
-            <p className="text-slate-600 dark:text-slate-300">{result.bodyChanges}</p>
-          </ResultSection>
+          <ListSection icon="🚨" title="Abnormalities" items={result.abnormalities} delay={100} />
+          <ListSection icon="✅" title="Recommendations" items={result.recommendations} delay={150} />
 
-          <ListSection icon="🔬" title="Possible Causes" items={result.possibleCauses} delay={200} />
-          <ListSection icon="😓" title="Symptoms You May Experience" items={result.symptoms} delay={250} />
-          <ListSection icon="🥦" title="Lifestyle Improvements" items={result.lifestyleImprovements} delay={300} />
-          <ListSection icon="✅" title="Foods to Eat" items={result.foodsToEat} delay={350} />
-          <ListSection icon="❌" title="Foods to Avoid" items={result.foodsToAvoid} delay={400} />
-
-          {result.medicineAnalysis && (
-            <ResultSection icon="💊" title="Medicine Analysis" delay={450}>
-              <p className="text-slate-600 dark:text-slate-300">{result.medicineAnalysis}</p>
-            </ResultSection>
-          )}
-
-          {result.riskLevel && RISK_STYLES[result.riskLevel] && (
-            <div className={`rounded-2xl p-6 shadow-sm ${RISK_STYLES[result.riskLevel].bg} animate-card-fade-in opacity-0`}>
+          {result.emergency && (
+            <div className="rounded-2xl p-6 shadow-sm bg-red-50 dark:bg-red-900/20 animate-card-fade-in opacity-0">
               <h3 className="text-lg font-display font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                🚦 Risk Level
+                🚨 Emergency Alert
               </h3>
-              <p className={`mt-2 text-xl font-extrabold ${RISK_STYLES[result.riskLevel].color}`}>
-                {RISK_STYLES[result.riskLevel].emoji} {RISK_STYLES[result.riskLevel].label}
+              <p className="mt-2 font-semibold text-red-600 dark:text-red-400">
+                Immediate medical attention is recommended based on these findings.
               </p>
             </div>
           )}
 
-          <ResultSection icon="👨‍⚕️" title="Doctor Recommendation" delay={500}>
-            <p className="text-slate-600 dark:text-slate-300">{result.doctorRecommendation}</p>
-          </ResultSection>
-
-          <ResultSection icon="⚠️" title="Disclaimer" delay={550}>
-            <p className="text-sm text-slate-400 dark:text-slate-500 italic">{result.disclaimer}</p>
-          </ResultSection>
+          {result.confidence && (
+            <ResultSection icon="📊" title="AI Confidence" delay={200}>
+              <p className="text-slate-600 dark:text-slate-300">
+                {(result.confidence * 100).toFixed(0)}% confident in analysis
+              </p>
+            </ResultSection>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
