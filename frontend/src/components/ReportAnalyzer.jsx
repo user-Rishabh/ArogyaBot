@@ -18,7 +18,7 @@ const LOADING_STEPS = [
 ];
 
 const RISK_STYLES = {
-  normal:   { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', emoji: '🟢', label: 'Normal' },
+  normal: { color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', emoji: '🟢', label: 'Normal' },
   abnormal: { color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20', emoji: '🟡', label: 'Abnormal' },
   critical: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', emoji: '🔴', label: 'Critical' },
 };
@@ -110,8 +110,8 @@ export default function ReportAnalyzer({ isDarkMode }) {
     }, 3000);
 
     try {
-      const apiURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-      const response = await axios.post(`${apiURL}/report-analyzer`, formData, {
+      const apiURL = import.meta.env.VITE_API_URL || 'https://arogyabot-backend.onrender.com';
+      const response = await axios.post(`${apiURL}/api/report-analyzer`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
@@ -301,14 +301,14 @@ export default function ReportAnalyzer({ isDarkMode }) {
             <HeartPulse className="h-14 w-14 text-indigo-500 animate-pulse mx-auto" />
             <ScanLine className="h-14 w-14 text-indigo-300 absolute top-0 left-0 animate-scan-line" />
           </div>
-          
+
           {uploadProgress < 100 ? (
             <div>
               <p className="font-semibold text-slate-700 dark:text-slate-200 mb-2">
                 Uploading... {uploadProgress}%
               </p>
               <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                <div 
+                <div
                   className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
@@ -337,82 +337,82 @@ export default function ReportAnalyzer({ isDarkMode }) {
 
       {result && !loading && (
         <div className="space-y-4">
-        <div id="report-analysis-output" className="space-y-4 bg-white dark:bg-slate-900 p-2 rounded-2xl">
-          {result.reportType && (
-             <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 px-4 pt-2">
-               Report Type: {result.reportType}
-             </h3>
-          )}
-          
-          <ResultSection icon="🧾" title="Report Summary" delay={0}>
-            <p className="text-slate-600 dark:text-slate-300">{result.summary}</p>
-          </ResultSection>
-
-          {Array.isArray(result.findings) && result.findings.length > 0 && (
-            <ResultSection icon="⚠️" title="Important Findings" delay={50}>
-              <div className="space-y-2">
-                {result.findings.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
-                    <div>
-                      <p className="font-semibold text-slate-800 dark:text-white">{f.name}</p>
-                      {f.note && <p className="text-sm text-slate-500 dark:text-slate-400">{f.note}</p>}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-slate-700 dark:text-slate-200">{f.value}</p>
-                      <StatusBadge status={f.status} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ResultSection>
-          )}
-
-          <ListSection icon="🚨" title="Abnormalities" items={result.abnormalities} delay={100} />
-          <ListSection icon="✅" title="Recommendations" items={result.recommendations} delay={150} />
-
-          {result.emergency && (
-            <div className="rounded-2xl p-6 shadow-sm bg-red-50 dark:bg-red-900/20 animate-card-fade-in opacity-0">
-              <h3 className="text-lg font-display font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                🚨 Emergency Alert
+          <div id="report-analysis-output" className="space-y-4 bg-white dark:bg-slate-900 p-2 rounded-2xl">
+            {result.reportType && (
+              <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 px-4 pt-2">
+                Report Type: {result.reportType}
               </h3>
-              <p className="mt-2 font-semibold text-red-600 dark:text-red-400">
-                Immediate medical attention is recommended based on these findings.
-              </p>
-            </div>
-          )}
-
-          {result.confidence && (
-            <ResultSection icon="📊" title="AI Confidence" delay={200}>
-              <p className="text-slate-600 dark:text-slate-300">
-                {(result.confidence * 100).toFixed(0)}% confident in analysis
-              </p>
-            </ResultSection>
-          )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={handleDownloadPDF}
-            disabled={downloading}
-            className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl py-3 font-extrabold transition-all"
-          >
-            {downloading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Preparing PDF...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" /> Download PDF Report
-              </>
             )}
-          </button>
-          <button
-            onClick={handleReset}
-            className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl py-3 font-extrabold hover:from-indigo-700 hover:to-indigo-800 transition-all"
-          >
-            <RotateCcw className="h-4 w-4" /> Analyze Another Report
-          </button>
-        </div>
+
+            <ResultSection icon="🧾" title="Report Summary" delay={0}>
+              <p className="text-slate-600 dark:text-slate-300">{result.summary}</p>
+            </ResultSection>
+
+            {Array.isArray(result.findings) && result.findings.length > 0 && (
+              <ResultSection icon="⚠️" title="Important Findings" delay={50}>
+                <div className="space-y-2">
+                  {result.findings.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                      <div>
+                        <p className="font-semibold text-slate-800 dark:text-white">{f.name}</p>
+                        {f.note && <p className="text-sm text-slate-500 dark:text-slate-400">{f.note}</p>}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-slate-700 dark:text-slate-200">{f.value}</p>
+                        <StatusBadge status={f.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ResultSection>
+            )}
+
+            <ListSection icon="🚨" title="Abnormalities" items={result.abnormalities} delay={100} />
+            <ListSection icon="✅" title="Recommendations" items={result.recommendations} delay={150} />
+
+            {result.emergency && (
+              <div className="rounded-2xl p-6 shadow-sm bg-red-50 dark:bg-red-900/20 animate-card-fade-in opacity-0">
+                <h3 className="text-lg font-display font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  🚨 Emergency Alert
+                </h3>
+                <p className="mt-2 font-semibold text-red-600 dark:text-red-400">
+                  Immediate medical attention is recommended based on these findings.
+                </p>
+              </div>
+            )}
+
+            {result.confidence && (
+              <ResultSection icon="📊" title="AI Confidence" delay={200}>
+                <p className="text-slate-600 dark:text-slate-300">
+                  {(result.confidence * 100).toFixed(0)}% confident in analysis
+                </p>
+              </ResultSection>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl py-3 font-extrabold transition-all"
+            >
+              {downloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Preparing PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" /> Download PDF Report
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleReset}
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl py-3 font-extrabold hover:from-indigo-700 hover:to-indigo-800 transition-all"
+            >
+              <RotateCcw className="h-4 w-4" /> Analyze Another Report
+            </button>
+          </div>
         </div>
       )}
     </div>
