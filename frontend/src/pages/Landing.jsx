@@ -329,7 +329,6 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <span className="text-lg font-bold text-white block mb-4">ArogyaBot 🏥</span>
           <p className="text-sm text-slate-400 mb-2">© {new Date().getFullYear()} ArogyaBot. All rights reserved.</p>
-          <p className="text-xs text-amber-400 font-semibold mb-4">Built by Team AlgoMinds</p>
           <p className="text-xs text-slate-500 max-w-xl mx-auto leading-relaxed">Disclaimer: ArogyaBot provides general health information only. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
         </div>
       </footer>

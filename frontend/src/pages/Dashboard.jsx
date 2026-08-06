@@ -493,6 +493,14 @@ JSON Schema:
   useEffect(() => {
     if (!user?.id) return
 
+    if (user.isDemo) {
+      setSessionsLoading(true)
+      const localSessions = JSON.parse(localStorage.getItem('arogyabot_demo_sessions') || '[]')
+      setSessions(localSessions)
+      setSessionsLoading(false)
+      return
+    }
+
     const fetchHistory = async () => {
       try {
         setSessionsLoading(true)
@@ -566,6 +574,16 @@ const displayName = profile?.name || formatName(user?.email)
     if (!window.confirm('Delete this chat?')) return
 
     console.log('Attempting to delete session:', sessionId, 'for user:', user?.id)
+
+    if (user?.isDemo) {
+      const localSessions = JSON.parse(localStorage.getItem('arogyabot_demo_sessions') || '[]')
+      const updated = localSessions.filter(s => s.id !== sessionId)
+      localStorage.setItem('arogyabot_demo_sessions', JSON.stringify(updated))
+      localStorage.removeItem(`arogyabot_demo_messages_${sessionId}`)
+      setSessions(updated)
+      return
+    }
+
     // Delete from Supabase first
     const { error } = await supabase
       .from('chat_sessions')
@@ -588,6 +606,11 @@ const displayName = profile?.name || formatName(user?.email)
     console.log('Attempting to clear all sessions for user:', user?.id)
     try {
       if (user?.isDemo) {
+        const localSessions = JSON.parse(localStorage.getItem('arogyabot_demo_sessions') || '[]')
+        localSessions.forEach(s => {
+          localStorage.removeItem(`arogyabot_demo_messages_${s.id}`)
+        })
+        localStorage.removeItem('arogyabot_demo_sessions')
         setSessions([])
         return
       }

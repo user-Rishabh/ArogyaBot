@@ -528,7 +528,19 @@ export default function Chat() {
 
   /* Fetch existing messages for this session if it exists */
   useEffect(() => {
-    if (!sessionId || isDemo) return
+    if (!sessionId) return
+
+    if (isDemo) {
+      const sessionMsgsKey = `arogyabot_demo_messages_${sessionId}`
+      const localMsgs = JSON.parse(localStorage.getItem(sessionMsgsKey) || '[]')
+      const formatted = localMsgs.map((msg, index) => ({
+        id: index,
+        role: msg.role,
+        content: msg.content
+      }))
+      setMessages(formatted)
+      return
+    }
 
     if (preventFetchRef.current) {
       preventFetchRef.current = false
@@ -606,11 +618,38 @@ export default function Chat() {
       if (isDemo) {
         /* ── Demo mode: use local mock responses ── */
         reply = await getDemoResponse(text)
-        if (!sessionId) {
-          const demoSessionId = `demo-${Date.now()}`
-          setSessionId(demoSessionId)
-          window.history.replaceState(null, '', `/chat/${demoSessionId}`)
+        let activeSessionId = sessionId
+        if (!activeSessionId) {
+          activeSessionId = `demo-${Date.now()}`
+          setSessionId(activeSessionId)
+          window.history.replaceState(null, '', `/chat/${activeSessionId}`)
+
+          const localSessions = JSON.parse(localStorage.getItem('arogyabot_demo_sessions') || '[]')
+          localSessions.unshift({
+            id: activeSessionId,
+            title: text.substring(0, 50) + '...',
+            created_at: new Date().toISOString()
+          })
+          localStorage.setItem('arogyabot_demo_sessions', JSON.stringify(localSessions))
         }
+
+        // Store messages in localStorage
+        const sessionMsgsKey = `arogyabot_demo_messages_${activeSessionId}`
+        const localMsgs = JSON.parse(localStorage.getItem(sessionMsgsKey) || '[]')
+
+        // If it's a new session, prepend the welcome message if present
+        if (localMsgs.length === 0 && messages.length > 0 && messages[0].isWelcome) {
+          localMsgs.push({
+            role: 'assistant',
+            content: messages[0].content
+          })
+        }
+
+        localMsgs.push(
+          { role: 'user', content: text },
+          { role: 'assistant', content: reply }
+        )
+        localStorage.setItem(sessionMsgsKey, JSON.stringify(localMsgs))
       } else {
         /* ── Real API mode ── */
         let activeSessionId = sessionId

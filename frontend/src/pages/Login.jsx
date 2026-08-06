@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { HeartPulse, Mail, Lock, Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react'
+import { HeartPulse, Mail, Lock, Eye, EyeOff, AlertCircle, Sun, Moon, Zap } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Login() {
-  const { login, googleLogin } = useAuth()
+  const { login, googleLogin, loginAsDemo } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -21,6 +21,11 @@ export default function Login() {
     } catch (err) {
       setError(err.message || 'Google login failed')
     }
+  }
+
+  const handleDemoLogin = () => {
+    loginAsDemo()
+    navigate('/dashboard')
   }
 
   async function handleSubmit(e) {
@@ -70,14 +75,36 @@ export default function Login() {
         {/* Login Card */}
         <div className="bg-white dark:bg-slate-800 shadow-xl rounded-2xl p-8 border border-indigo-50 dark:border-slate-700 transition-colors duration-300">
           {error && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-600 dark:text-red-400 text-sm mb-6">
-              <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+            <div className="flex flex-col gap-2.5 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-600 dark:text-red-400 text-sm mb-6">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 animate-pulse" />
+                <span className="font-medium">{error}</span>
+              </div>
+              {(error.toLowerCase().includes('fetch') || error.toLowerCase().includes('network') || error.toLowerCase().includes('failed')) && (
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  className="mt-1 self-start text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1.5 bg-indigo-50/50 dark:bg-indigo-950/40 px-2 py-1 rounded-md border border-indigo-100 dark:border-indigo-900 transition-all hover:scale-102"
+                >
+                  <Zap className="w-3 h-3 fill-current text-indigo-500" />
+                  Try Demo Mode (Works completely offline!)
+                </button>
+              )}
             </div>
           )}
 
           <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
             Continue with Google
+          </button>
+
+          <button 
+            type="button" 
+            onClick={handleDemoLogin} 
+            className="mt-3 w-full flex items-center justify-center gap-3 px-4 py-3 border border-amber-250 dark:border-amber-700/50 rounded-xl bg-amber-50/40 dark:bg-amber-950/10 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all duration-200 font-semibold text-amber-700 dark:text-amber-400 shadow-sm"
+          >
+            <Zap className="w-5 h-5 fill-amber-500 text-amber-500" />
+            Explore in Demo Mode
           </button>
 
           <div className="flex items-center gap-3 my-4">
