@@ -19,13 +19,15 @@ Respond strictly with ONLY a JSON object that matches this format (do not includ
   "findings": [
     {
       "name": "Test or observation name",
-      "value": "Value or description",
+      "value": "Value or description (with units if available)",
+      "reference": "Biological reference range if stated or standard clinical bracket",
       "status": "normal|abnormal|critical",
       "note": "Medical terminology explained simply"
     }
   ],
   "abnormalities": ["List of abnormal findings explained in plain English"],
   "recommendations": ["Lifestyle recommendations and next steps"],
+  "doctorQuestions": ["3-4 specific, high-value questions the patient should ask their doctor regarding these results"],
   "emergency": false,
   "confidence": 0.95
 }

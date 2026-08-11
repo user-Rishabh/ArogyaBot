@@ -1372,7 +1372,15 @@ JSON Schema:
               )}
               {/* Report Analyzer Tab */}
               {activeTab === 'report' && (
-                <ReportAnalyzer isDarkMode={theme === 'dark'} />
+                <ReportAnalyzer
+                  isDarkMode={theme === 'dark'}
+                  onNavigateTab={(tab) => {
+                    if (tab === 'care' && activeTab !== 'care') {
+                      handleDetectLocation()
+                    }
+                    setActiveTab(tab)
+                  }}
+                />
               )}
               {activeTab === 'diet' && (
                 <div className="animate-tab-fade-in max-w-3xl mx-auto space-y-4">
